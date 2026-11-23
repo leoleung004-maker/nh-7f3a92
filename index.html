@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8" />
@@ -768,7 +768,7 @@ resize: vertical;
 存檔後會顯示依你身體數據推算嘅 BMR、建議攝取熱量同飲水目標
 </div>
 <button class="btn-primary" onclick="saveProfile()">更新檔案並自動重算目標</button>
-<div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">網頁版本 v2026-11-23.2</div>
+<div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">網頁版本 v2026-11-23.3</div>
 </div>
 </div>
 <!-- 安裝與同步說明彈窗 -->
@@ -782,15 +782,15 @@ resize: vertical;
 <div style="background:#f0fdfa; padding:12px; border-radius:12px; border:1px solid #99f6e4;">
 <strong>流程說明：</strong>
 <ol style="margin:6px 0 0; padding-left:18px;">
-<li>喺「捷徑」App 建立捷徑：用「尋找健康樣本」讀步數／睡眠／飲水，再用「文字」組成 <code>{"steps":6850,"sleep":7.5,"water":2200}</code>。</li>
-<li>用「打開 URL」打開 <code>https://你的網址/#HEALTH_SYNC:</code> 接住上面嗰段 JSON（捷徑會自動編碼，照貼就得）。</li>
-<li>頁面頂部會出現綠色橫幅，撳「同步數據」即更新當日紀錄。</li>
-<li>冇橫幅或者想自己改？用下面「📋 手動貼上數據」貼上同一段 <code>HEALTH_SYNC:{...}</code>。</li>
+<li>喺「捷徑」App：用「尋找健康樣本」讀步數／睡眠／飲水，再用「計算統計資料」攞總和。</li>
+<li>用「文字」砌網址，格式係 <code>…#HEALTH_SYNC:steps=</code> ＋步數變數＋<code>&amp;sleep=</code>＋睡眠變數＋<code>&amp;water=</code>＋飲水變數。</li>
+<li><strong>唔好用 <code>{ } " </code> 大括號／引號</strong>：iOS 會當佢哋係非法 URL 字元而食咗，結果就係而家咁「冇數據」。</li>
+<li>頁面頂部出綠色橫幅，撳「同步數據」即更新當日紀錄；冇橫幅就可以用下面「📋 手動貼上數據」。</li>
 </ol>
 </div>
 <div class="manual-sync-box" style="background:#fff7ed; padding:12px; border-radius:12px; border:1px solid #fed7aa;">
 <strong>📋 手動貼上數據</strong>
-<div class="manual-sync-hint" id="manual-sync-hint">用捷徑複製咗 <code>HEALTH_SYNC:{...}</code> 之後，貼落下面個框再撳「解析並同步」。前綴可以漏咗，直接貼 {...} 都得。</div>
+<div class="manual-sync-hint" id="manual-sync-hint">貼上 <code>HEALTH_SYNC:steps=6850&amp;sleep=7.5&amp;water=2200</code> 或 <code>HEALTH_SYNC:{"steps":6850}</code> 再撳「解析並同步」。前綴可以漏，直接貼內容都得。</div>
 <textarea id="manual-sync-input" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder='HEALTH_SYNC:{"steps":6850,"sleep":7.5,"water":2500,"weight":105.2}'></textarea>
 <button class="btn-primary" onclick="applyManualSync()">解析並同步</button>
 </div>
@@ -884,15 +884,28 @@ localStorage.setItem(getDayKey(dateStr), JSON.stringify(data));
 alert('⚠️ 瀏覽器儲存空間不足（通常是相片太多），此筆紀錄未能儲存。');
 }
 }
+function decodeHashText(raw) {
+let t = raw;
+for (let i = 0; i < 3; i++) {
+if (t.indexOf("%") === -1) break;
+let next;
+try { next = decodeURIComponent(t); } catch (e) { break; }
+if (next === t) break;
+t = next;
+}
+return t;
+}
 function readHashSync() {
 const raw = String(location.hash || "").replace(/^#/, "");
 if (!raw) return;
-let text = raw;
-try { text = decodeURIComponent(raw); } catch (e) { text = raw; }
+const text = decodeHashText(raw);
 if (!/HEALTH_SYNC/i.test(text) && text.charAt(0) !== "{") return;
 const res = parseHealthSync(text);
 if (res.error || !res.payload) {
-alert(`⚠️ 網址帶入嘅數據解析失敗：${res.error || "格式不正確"}`);
+const box = document.getElementById("manual-sync-input");
+if (box) box.value = text;
+revealManualSync(`⚠️ 網址帶入嘅數據解析唔到：${res.error || "格式不正確"}。已經放喺下面個框，可以直接改完再撳「解析並同步」。`);
+openModal("install-modal");
 return;
 }
 pendingSyncData = res.payload;
@@ -941,6 +954,7 @@ function revealManualSync(message) {
 const hint = document.getElementById("manual-sync-hint");
 if (hint && message) hint.textContent = message;
 }
+const KEY_ALIASES = { step: "steps", steps: "steps", sleep: "sleep", water: "water", weight: "weight", 步數: "steps", 睡眠: "sleep", 飲水: "water", 體重: "weight" };
 function repairLooseJson(raw) {
 const fixed = raw.replace(/(:\s*)([^,{}[\]]+?)(?=\s*[,}])/g, function (m, sep, val) {
 const v = String(val).trim();
@@ -952,23 +966,37 @@ try { return JSON.parse(fixed); } catch (e) { return null; }
 }
 function parseHealthSync(raw) {
 const s = String(raw == null ? "" : raw).replace(/\u00a0/g, " ").trim();
-if (!s) return { error: "請先貼上 HEALTH_SYNC:{...} 內容" };
-if (!/HEALTH_SYNC/i.test(s) && s.charAt(0) !== "{") {
+if (!s) return { error: "請先貼上 HEALTH_SYNC:steps=…&sleep=… 或 HEALTH_SYNC:{...}" };
+const hasPrefix = /HEALTH_SYNC/i.test(s);
+if (!hasPrefix && s.charAt(0) !== "{") {
 return { error: "搵唔到 HEALTH_SYNC: 前綴，請確認複製嘅內容完整" };
 }
 const start = s.indexOf("{");
 const end = s.lastIndexOf("}");
-if (start < 0 || end <= start) {
-return { error: "格式唔完整：HEALTH_SYNC: 後面要有一段 {...} JSON" };
-}
+if (start >= 0 && end > start) {
 const jsonText = s.slice(start, end + 1);
 try {
 return { payload: JSON.parse(jsonText) };
 } catch (e) {
 const repaired = repairLooseJson(jsonText);
 if (repaired) return { payload: repaired };
-return { error: `JSON 解析失敗（${e.message}），請確認 {...} 內容冇缺漏` };
 }
+}
+if (hasPrefix) {
+const body = s.replace(/^[\s\S]*?HEALTH_SYNC\s*:?\s*/i, "").trim();
+const pairs = body.split(/[&;]+/).map(x => x.trim()).filter(Boolean);
+const out = {};
+for (const pair of pairs) {
+const m = pair.match(/^([A-Za-z_]+)\s*[=:]\s*(.*)$/);
+if (!m) continue;
+let key = m[1].toLowerCase();
+if (KEY_ALIASES[key]) key = KEY_ALIASES[key];
+if (["steps", "sleep", "water", "weight"].indexOf(key) === -1) continue;
+out[key] = m[2].trim();
+}
+if (Object.keys(out).length) return { payload: out };
+}
+return { error: `格式唔完整：收到「${s.slice(0, 46)}」；HEALTH_SYNC: 後面要係 {...} JSON，或者 steps=…&sleep=…&water=…` };
 }
 function syncNumber(value) {
 if (value === undefined || value === null || value === "") return null;
