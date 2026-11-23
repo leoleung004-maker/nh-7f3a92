@@ -768,6 +768,7 @@ resize: vertical;
 存檔後會顯示依你身體數據推算嘅 BMR、建議攝取熱量同飲水目標
 </div>
 <button class="btn-primary" onclick="saveProfile()">更新檔案並自動重算目標</button>
+<div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">網頁版本 v2026-11-23.2</div>
 </div>
 </div>
 <!-- 安裝與同步說明彈窗 -->
@@ -940,6 +941,15 @@ function revealManualSync(message) {
 const hint = document.getElementById("manual-sync-hint");
 if (hint && message) hint.textContent = message;
 }
+function repairLooseJson(raw) {
+const fixed = raw.replace(/(:\s*)([^,{}[\]]+?)(?=\s*[,}])/g, function (m, sep, val) {
+const v = String(val).trim();
+if (!v) return m;
+if (/^-?\d+(\.\d+)?$/.test(v) || /^".*"$/.test(v) || /^(true|false|null)$/i.test(v)) return sep + v;
+return sep + JSON.stringify(v);
+});
+try { return JSON.parse(fixed); } catch (e) { return null; }
+}
 function parseHealthSync(raw) {
 const s = String(raw == null ? "" : raw).replace(/\u00a0/g, " ").trim();
 if (!s) return { error: "請先貼上 HEALTH_SYNC:{...} 內容" };
@@ -951,16 +961,23 @@ const end = s.lastIndexOf("}");
 if (start < 0 || end <= start) {
 return { error: "格式唔完整：HEALTH_SYNC: 後面要有一段 {...} JSON" };
 }
+const jsonText = s.slice(start, end + 1);
 try {
-return { payload: JSON.parse(s.slice(start, end + 1)) };
+return { payload: JSON.parse(jsonText) };
 } catch (e) {
+const repaired = repairLooseJson(jsonText);
+if (repaired) return { payload: repaired };
 return { error: `JSON 解析失敗（${e.message}），請確認 {...} 內容冇缺漏` };
 }
 }
 function syncNumber(value) {
 if (value === undefined || value === null || value === "") return null;
-const cleaned = String(value).replace(/[,，\s]/g, "");
+const cleaned = String(value).trim().replace(/[,，\s]/g, "");
 if (!cleaned) return null;
+const clock = cleaned.match(/^(\d{1,2})[:：](\d{2})(?::(\d{2}))?$/);
+if (clock) return Number(clock[1]) + Number(clock[2]) / 60 + (clock[3] ? Number(clock[3]) / 3600 : 0);
+const hm = cleaned.match(/^(\d+(?:\.\d+)?)h(?:(\d+)m)?$/i);
+if (hm) return Number(hm[1]) + (hm[2] ? Number(hm[2]) / 60 : 0);
 const n = Number(cleaned);
 return isNaN(n) ? null : n;
 }
