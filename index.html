@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8" />
@@ -391,6 +391,17 @@ font-weight: 700;
 cursor: pointer;
 margin-top: 6px;
 }
+.btn-secondary {
+width: 100%;
+background: #f1f5f9;
+color: var(--text);
+border: 1px solid var(--border);
+border-radius: 12px;
+padding: 11px;
+font-size: 14px;
+font-weight: 700;
+cursor: pointer;
+}
 .photo-box {
 border: 2px dashed #99f6e4;
 background: #f0fdfa;
@@ -494,8 +505,8 @@ resize: vertical;
 <span id="cal-status" class="badge badge-low">進度理想</span>
 </div>
 <div style="display:flex; justify-content:space-between; align-items:baseline;">
-<div class="big-num"><span id="cal-consumed">0</span> <small>/ <span id="cal-target">2170</span> kcal</small></div>
-<div style="font-size:13px; font-weight:700; color:var(--primary);">剩餘 <span id="cal-remain">2170</span> kcal</div>
+<div class="big-num"><span id="cal-consumed">0</span> <small>/ <span id="cal-target">1750</span> kcal</small></div>
+<div style="font-size:13px; font-weight:700; color:var(--primary);">剩餘 <span id="cal-remain">1750</span> kcal</div>
 </div>
 <div class="progress-bg">
 <div class="progress-fill" id="cal-bar" style="width:0%"></div>
@@ -586,7 +597,7 @@ resize: vertical;
 <span id="gout-badge" class="badge badge-low">痛風風險：低</span>
 </div>
 <div style="display:flex; justify-content:space-between; align-items:baseline;">
-<div class="big-num" style="color:var(--blue);"><span id="water-consumed">0</span> <small>/ <span id="water-target">3200</span> mL</small></div>
+<div class="big-num" style="color:var(--blue);"><span id="water-consumed">0</span> <small>/ <span id="water-target">2500</span> mL</small></div>
 <div style="font-size:12px; color:var(--muted);">咖啡因：<strong id="caffeine-consumed">0</strong> / 400 mg</div>
 </div>
 <div class="progress-bg">
@@ -768,7 +779,25 @@ resize: vertical;
 存檔後會顯示依你身體數據推算嘅 BMR、建議攝取熱量同飲水目標
 </div>
 <button class="btn-primary" onclick="saveProfile()">更新檔案並自動重算目標</button>
-<div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">網頁版本 v2026-11-23.3</div>
+<div style="margin-top:18px; padding-top:14px; border-top:1px dashed var(--border);">
+<div style="display:flex; align-items:baseline; justify-content:space-between; gap:8px;">
+<div style="font-size:13px; font-weight:700;">💾 資料備份</div>
+<span style="font-size:11px; color:var(--muted);">換電話／清 cache 前記得匯出</span>
+</div>
+<div class="row-2" style="margin-top:10px;">
+<button class="btn-secondary" onclick="exportBackup()">⬇️ 匯出</button>
+<button class="btn-secondary" onclick="toggleImport()">⬆️ 匯入</button>
+</div>
+<div id="import-area" style="display:none; margin-top:10px;">
+<textarea id="import-text" placeholder="貼上備份 JSON，或者撳下面「揀檔案」" style="width:100%; min-height:72px; padding:10px 12px; border:1px solid var(--border); border-radius:10px; font-size:12px; font-family:ui-monospace, Menlo, Consolas, monospace; background:#f8fafc; color:var(--text); resize:vertical;"></textarea>
+<input type="file" id="import-file" accept=".json,application/json" style="display:none;" onchange="handleImportFile(event)" />
+<div class="row-2" style="margin-top:8px;">
+<button class="btn-secondary" onclick="document.getElementById('import-file').click()">📄 揀檔案</button>
+<button class="btn-primary" style="margin-top:0;" onclick="applyImport()">確認匯入</button>
+</div>
+</div>
+</div>
+<div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">網頁版本 v2026-11-23.4</div>
 </div>
 </div>
 <!-- 安裝與同步說明彈窗 -->
@@ -1238,6 +1267,92 @@ activity: Number(document.getElementById("p-activity").value) || 1.2
 localStorage.setItem("nutri_profile_v3", JSON.stringify(p));
 closeModal("profile-modal");
 renderAll();
+}
+function collectBackup() {
+const data = {};
+try {
+for (let i = 0; i < localStorage.length; i++) {
+const key = localStorage.key(i);
+if (!key) continue;
+if (key.indexOf("nutri_day_v4_") === 0 || key === "nutri_profile_v3") {
+try { data[key] = JSON.parse(localStorage.getItem(key)); }
+catch (e) { data[key] = localStorage.getItem(key); }
+}
+}
+} catch (e) {}
+data["nutri_profile_v3"] = getProfile();
+return { app: "nutri-health", version: 1, exportedAt: new Date().toISOString(), data: data };
+}
+function exportBackup() {
+const payload = collectBackup();
+const json = JSON.stringify(payload);
+const name = `nutri-backup-${todayStr()}.json`;
+let downloaded = false;
+try {
+const blob = new Blob([json], { type: "application/json" });
+const url = URL.createObjectURL(blob);
+const a = document.createElement("a");
+a.href = url;
+a.download = name;
+document.body.appendChild(a);
+a.click();
+document.body.removeChild(a);
+setTimeout(function () { URL.revokeObjectURL(url); }, 5000);
+downloaded = true;
+} catch (e) { downloaded = false; }
+const box = document.getElementById("import-text");
+const area = document.getElementById("import-area");
+if (box) box.value = json;
+if (area) area.style.display = "block";
+try {
+if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(json);
+} catch (e) {}
+const days = Object.keys(payload.data).filter(function (k) { return k.indexOf("nutri_day_v4_") === 0; }).length;
+if (downloaded) {
+alert(`✅ 已匯出 ${days} 日紀錄（${name}）。同時放咗一份落「匯入」框同剪貼簿做後備。`);
+} else {
+alert(`✅ 已匯出 ${days} 日紀錄。如果冇見到檔案下載，內容已經放喺下面「匯入」框同剪貼簿，可以貼去備忘錄保存。`);
+}
+}
+function toggleImport() {
+const area = document.getElementById("import-area");
+if (!area) return;
+area.style.display = (area.style.display === "block") ? "none" : "block";
+}
+function handleImportFile(e) {
+const file = e && e.target && e.target.files ? e.target.files[0] : null;
+if (!file) return;
+const reader = new FileReader();
+reader.onload = function (ev) {
+const box = document.getElementById("import-text");
+if (box) box.value = String(ev.target.result || "");
+alert("✅ 已讀取檔案，撳「確認匯入」先會真正寫入。");
+};
+reader.readAsText(file);
+}
+function applyImport() {
+const box = document.getElementById("import-text");
+const raw = box ? String(box.value || "").trim() : "";
+if (!raw) { alert("請先貼上備份內容，或者揀一個 .json 檔案"); return; }
+let parsed;
+try { parsed = JSON.parse(raw); } catch (e) { alert("❌ 呢段唔係有效嘅備份 JSON"); return; }
+const data = (parsed && parsed.data) || parsed;
+if (!data || typeof data !== "object") { alert("❌ 備份格式唔啱，搵唔到資料"); return; }
+let days = 0, foods = 0, hasProfile = false;
+Object.keys(data).forEach(function (k) {
+if (k.indexOf("nutri_day_v4_") === 0 && data[k] && typeof data[k] === "object") {
+localStorage.setItem(k, JSON.stringify(data[k]));
+days++;
+if (Array.isArray(data[k].foods)) foods += data[k].foods.length;
+} else if (k === "nutri_profile_v3" && data[k] && typeof data[k] === "object") {
+localStorage.setItem(k, JSON.stringify(data[k]));
+hasProfile = true;
+}
+});
+if (!days && !hasProfile) { alert("❌ 備份入面冇任何日紀錄或個人設定"); return; }
+closeModal("profile-modal");
+renderAll();
+alert(`✅ 已匯入 ${days} 日紀錄（${foods} 筆飲食）${hasProfile ? "＋個人設定" : ""}。`);
 }
 function openModal(id) {
 if (id === "profile-modal") {
