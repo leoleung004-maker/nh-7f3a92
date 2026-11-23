@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="減脂痛風營養師" />
+<meta name="theme-color" content="#0f766e" />
+<link rel="manifest" id="manifest-link" />
+<link rel="apple-touch-icon" id="apple-touch-icon" href="" />
+<title>個人減脂與痛風控管營養師</title>
+<style>
+:root {
+--bg: #f1f5f9;
+--card: #ffffff;
+--primary: #0f766e;
+--primary-light: #ccfbf1;
+--primary-dark: #115e59;
+--text: #0f172a;
+--muted: #64748b;
+--border: #e2e8f0;
+--blue: #0284c7;
+--blue-light: #e0f2fe;
+--purple: #7c3aed;
+--purple-light: #ede9fe;
+--orange: #ea580c;
+--orange-light: #ffedd5;
+--amber: #d97706;
+--amber-light: #fef3c7;
+--red: #dc2626;
+--red-light: #fee2e2;
+--green: #16a34a;
+--green-light: #dcfce7;
+--radius: 16px;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body {
+margin: 0;
+font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+background: var(--bg);
+color: var(--text);
+padding-bottom: calc(92px + env(safe-area-inset-bottom));
+line-height: 1.45;
+}
+header {
+background: linear-gradient(135deg, #0f766e 0%, #0d9488 100%);
+color: #fff;
+padding: calc(16px + env(safe-area-inset-top)) 16px 20px;
+border-bottom-left-radius: 24px;
+border-bottom-right-radius: 24px;
+box-shadow: 0 4px 14px rgba(15, 118, 110, 0.2);
+}
+.header-top {
+display: flex;
+justify-content: space-between;
+align-items: center;
+gap: 8px;
+}
+.header-title {
+font-size: 18px;
+font-weight: 700;
+margin: 0;
+}
+.header-sub {
+font-size: 12px;
+opacity: 0.9;
+margin-top: 2px;
+}
+.btn-ghost {
+background: rgba(255,255,255,0.18);
+color: #fff;
+border: 1px solid rgba(255,255,255,0.3);
+border-radius: 10px;
+padding: 6px 10px;
+font-size: 12px;
+font-weight: 600;
+cursor: pointer;
+}
+.date-bar {
+display: flex;
+align-items: center;
+justify-content: space-between;
+background: rgba(255,255,255,0.14);
+border-radius: 12px;
+padding: 6px 10px;
+margin-top: 12px;
+}
+.date-bar button {
+background: none;
+border: none;
+color: #fff;
+font-size: 14px;
+font-weight: 700;
+padding: 4px 10px;
+cursor: pointer;
+}
+.date-bar span {
+font-size: 14px;
+font-weight: 600;
+}
+.sync-banner {
+background: #ecfdf5;
+border: 1px solid #a7f3d0;
+color: #065f46;
+border-radius: 12px;
+padding: 10px 12px;
+font-size: 13px;
+display: none;
+justify-content: space-between;
+align-items: center;
+gap: 8px;
+margin-top: 14px;
+}
+.sync-banner.show { display: flex; }
+.btn-sync-action {
+background: var(--primary);
+color: #fff;
+border: none;
+border-radius: 8px;
+padding: 6px 12px;
+font-size: 12px;
+font-weight: 700;
+cursor: pointer;
+white-space: nowrap;
+}
+.container {
+max-width: 600px;
+margin: 0 auto;
+padding: 14px;
+display: flex;
+flex-direction: column;
+gap: 14px;
+}
+.card {
+background: var(--card);
+border-radius: var(--radius);
+padding: 16px;
+box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+border: 1px solid var(--border);
+}
+.card-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 10px;
+gap: 8px;
+}
+.card-title {
+font-size: 15px;
+font-weight: 700;
+display: flex;
+align-items: center;
+gap: 6px;
+margin: 0;
+}
+.mini-sync-btn {
+background: #f1f5f9;
+color: var(--text);
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 3px 8px;
+font-size: 11px;
+font-weight: 600;
+cursor: pointer;
+}
+.big-num {
+font-size: 26px;
+font-weight: 800;
+color: var(--primary);
+}
+.big-num small {
+font-size: 13px;
+font-weight: 500;
+color: var(--muted);
+}
+.progress-bg {
+width: 100%;
+height: 10px;
+background: #e2e8f0;
+border-radius: 999px;
+overflow: hidden;
+margin: 8px 0;
+}
+.progress-fill {
+height: 100%;
+background: var(--primary);
+border-radius: 999px;
+transition: width 0.3s ease, background 0.3s ease;
+}
+.macro-grid {
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 8px;
+margin-top: 10px;
+}
+.macro-box {
+background: #f8fafc;
+border-radius: 12px;
+padding: 8px;
+text-align: center;
+border: 1px solid var(--border);
+}
+.macro-box .label { font-size: 11px; color: var(--muted); }
+.macro-box .val { font-size: 15px; font-weight: 700; margin-top: 2px; }
+.badge {
+display: inline-block;
+padding: 3px 8px;
+border-radius: 999px;
+font-size: 11px;
+font-weight: 700;
+}
+.badge-low { background: var(--green-light); color: var(--green); }
+.badge-mid { background: var(--amber-light); color: var(--amber); }
+.badge-high { background: var(--red-light); color: var(--red); }
+.badge-purple { background: var(--purple-light); color: var(--purple); }
+.badge-orange { background: var(--orange-light); color: var(--orange); }
+.action-btns {
+display: grid;
+grid-template-columns: repeat(4, 1fr);
+gap: 6px;
+margin-top: 10px;
+}
+.action-btns button {
+border-radius: 10px;
+padding: 8px 4px;
+font-size: 12px;
+font-weight: 700;
+cursor: pointer;
+}
+.btn-water {
+background: var(--blue-light);
+color: var(--blue);
+border: 1px solid #bae6fd;
+}
+.btn-step {
+background: var(--orange-light);
+color: var(--orange);
+border: 1px solid #fed7aa;
+}
+.btn-sleep {
+background: var(--purple-light);
+color: var(--purple);
+border: 1px solid #ddd6fe;
+}
+.btn-reset {
+background: #f1f5f9;
+color: var(--muted);
+border: 1px solid var(--border);
+}
+.quick-scroll {
+display: flex;
+gap: 8px;
+overflow-x: auto;
+padding-bottom: 4px;
+scrollbar-width: none;
+}
+.quick-scroll::-webkit-scrollbar { display: none; }
+.quick-chip {
+flex: 0 0 auto;
+background: #f8fafc;
+border: 1px solid var(--border);
+border-radius: 12px;
+padding: 8px 12px;
+font-size: 12px;
+cursor: pointer;
+text-align: left;
+}
+.quick-chip strong { display: block; color: var(--text); font-size: 13px; }
+.quick-chip span { color: var(--muted); font-size: 11px; }
+.food-item {
+display: flex;
+justify-content: space-between;
+align-items: flex-start;
+padding: 10px 0;
+border-bottom: 1px solid var(--border);
+gap: 10px;
+}
+.food-item:last-child { border-bottom: none; padding-bottom: 0; }
+.food-name { font-weight: 700; font-size: 14px; }
+.food-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.food-thumb {
+width: 48px;
+height: 48px;
+border-radius: 10px;
+object-fit: cover;
+border: 1px solid var(--border);
+flex-shrink: 0;
+}
+.del-btn {
+background: #fee2e2;
+color: #dc2626;
+border: none;
+border-radius: 8px;
+padding: 4px 8px;
+font-size: 12px;
+font-weight: 600;
+cursor: pointer;
+}
+.fab {
+position: fixed;
+bottom: calc(18px + env(safe-area-inset-bottom));
+left: 50%;
+transform: translateX(-50%);
+background: var(--primary);
+color: #fff;
+border: none;
+border-radius: 999px;
+padding: 14px 28px;
+font-size: 15px;
+font-weight: 700;
+box-shadow: 0 8px 20px rgba(15, 118, 110, 0.35);
+cursor: pointer;
+z-index: 40;
+display: flex;
+align-items: center;
+gap: 8px;
+white-space: nowrap;
+}
+.modal-backdrop {
+position: fixed;
+inset: 0;
+background: rgba(15, 23, 42, 0.55);
+display: none;
+align-items: flex-end;
+justify-content: center;
+z-index: 50;
+}
+.modal-backdrop.open { display: flex; }
+.modal {
+background: #fff;
+width: 100%;
+max-width: 600px;
+max-height: 90vh;
+overflow-y: auto;
+border-top-left-radius: 24px;
+border-top-right-radius: 24px;
+padding: 20px 16px calc(24px + env(safe-area-inset-bottom));
+}
+.modal-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 14px;
+}
+.modal-header h3 { margin: 0; font-size: 17px; }
+.close-btn {
+background: #f1f5f9;
+border: none;
+border-radius: 999px;
+width: 30px;
+height: 30px;
+font-size: 16px;
+cursor: pointer;
+}
+.form-group { margin-bottom: 12px; }
+.form-group label {
+display: block;
+font-size: 12px;
+font-weight: 700;
+color: var(--muted);
+margin-bottom: 4px;
+}
+.form-group input, .form-group select {
+width: 100%;
+padding: 10px 12px;
+border: 1px solid var(--border);
+border-radius: 10px;
+font-size: 14px;
+background: #fff;
+}
+.row-2 {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 10px;
+}
+.row-3 {
+display: grid;
+grid-template-columns: 1fr 1fr 1fr;
+gap: 8px;
+}
+.btn-primary {
+width: 100%;
+background: var(--primary);
+color: #fff;
+border: none;
+border-radius: 12px;
+padding: 12px;
+font-size: 15px;
+font-weight: 700;
+cursor: pointer;
+margin-top: 6px;
+}
+.photo-box {
+border: 2px dashed #99f6e4;
+background: #f0fdfa;
+border-radius: 14px;
+padding: 12px;
+text-align: center;
+margin-bottom: 12px;
+}
+.photo-preview {
+max-width: 100%;
+max-height: 160px;
+border-radius: 10px;
+margin-top: 8px;
+display: none;
+}
+.advice-box {
+background: #f8fafc;
+border-left: 4px solid var(--primary);
+padding: 10px 12px;
+border-radius: 8px;
+font-size: 13px;
+color: #334155;
+margin-top: 8px;
+}
+.inline-input-row {
+display: flex;
+gap: 6px;
+margin-top: 8px;
+}
+.inline-input-row input, .inline-input-row select {
+flex: 1;
+padding: 7px 10px;
+border: 1px solid var(--border);
+border-radius: 8px;
+font-size: 13px;
+}
+.inline-input-row button {
+background: var(--primary);
+color: #fff;
+border: none;
+border-radius: 8px;
+padding: 7px 12px;
+font-size: 12px;
+font-weight: 700;
+cursor: pointer;
+}
+.manual-sync-hint {
+font-size: 12px;
+color: var(--muted);
+margin-top: 6px;
+line-height: 1.5;
+}
+.manual-sync-box textarea {
+width: 100%;
+margin-top: 8px;
+min-height: 76px;
+padding: 10px 12px;
+border: 1px solid var(--border);
+border-radius: 10px;
+background: #f8fafc;
+color: var(--text);
+font-size: 12px;
+font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+line-height: 1.5;
+resize: vertical;
+}
+.manual-sync-box .btn-primary { margin-top: 8px; }
+</style>
+</head>
+<body>
+<header>
+<div class="header-top">
+<div>
+<h1 class="header-title">🥗 減脂與痛風營養師</h1>
+<div class="header-sub" id="profile-summary">男 · 30歲 · 172cm · 72kg → 目標 66kg</div>
+</div>
+<div style="display:flex; gap:6px;">
+<button class="btn-ghost" onclick="openModal('install-modal')">🩺 同步教學</button>
+<button class="btn-ghost" onclick="openModal('profile-modal')">👤 檔案目標</button>
+</div>
+</div>
+<div class="date-bar">
+<button onclick="changeDate(-1)">◀ 前一天</button>
+<span id="current-date-label">2026-11-23</span>
+<button onclick="changeDate(1)">後一天 ▶</button>
+</div>
+</header>
+<div class="container">
+<!-- 剪貼簿健康同步提示 -->
+<div class="sync-banner" id="clipboard-sync-banner">
+<div>
+<div style="font-weight:700;">📋 偵測到來自 Apple 健康的數據</div>
+<div id="clipboard-sync-text" style="font-size:12px; color:#047857; margin-top:2px;">點擊右側按鈕立即更新當日紀錄</div>
+</div>
+<button class="btn-sync-action" onclick="applyClipboardSync()">同步數據</button>
+</div>
+<!-- 熱量總覽卡片 -->
+<div class="card">
+<div class="card-header">
+<h2 class="card-title">🔥 今日熱量與收支平衡</h2>
+<span id="cal-status" class="badge badge-low">進度理想</span>
+</div>
+<div style="display:flex; justify-content:space-between; align-items:baseline;">
+<div class="big-num"><span id="cal-consumed">0</span> <small>/ <span id="cal-target">2170</span> kcal</small></div>
+<div style="font-size:13px; font-weight:700; color:var(--primary);">剩餘 <span id="cal-remain">2170</span> kcal</div>
+</div>
+<div class="progress-bg">
+<div class="progress-fill" id="cal-bar" style="width:0%"></div>
+</div>
+<div style="font-size:12px; color:var(--muted); display:flex; justify-content:space-between; margin-top:4px;">
+<span>👟 步行消耗加成：<strong style="color:var(--orange);">+<span id="step-burn-inline">0</span> kcal</strong></span>
+<span>淨攝取：<strong id="net-cal-inline">0</strong> kcal</span>
+</div>
+<div class="macro-grid">
+<div class="macro-box">
+<div class="label">蛋白質 (目標 140g)</div>
+<div class="val" id="macro-protein">0g</div>
+</div>
+<div class="macro-box">
+<div class="label">碳水化合物</div>
+<div class="val" id="macro-carbs">0g</div>
+</div>
+<div class="macro-box">
+<div class="label">脂肪</div>
+<div class="val" id="macro-fat">0g</div>
+</div>
+</div>
+</div>
+<!-- 運動步數追蹤卡片 -->
+<div class="card">
+<div class="card-header">
+<h2 class="card-title">👟 今日運動步數（護膝燃脂）</h2>
+<span id="step-badge" class="badge badge-orange">尚需加油</span>
+</div>
+<div style="display:flex; justify-content:space-between; align-items:baseline;">
+<div class="big-num" style="color:var(--orange);"><span id="steps-consumed">0</span> <small>/ <span id="steps-target">7500</span> 步</small></div>
+<div style="font-size:12px; color:var(--muted);">約 <strong id="step-km">0.0</strong> km · 消耗 <strong style="color:var(--orange);" id="step-kcal">0</strong> kcal</div>
+</div>
+<div class="progress-bg">
+<div class="progress-fill" id="steps-bar" style="width:0%; background:var(--orange);"></div>
+</div>
+<div class="action-btns">
+<button class="btn-step" onclick="addSteps(1000)">+1,000步</button>
+<button class="btn-step" onclick="addSteps(2500)">+2,500步</button>
+<button class="btn-step" onclick="addSteps(5000)">+5,000步</button>
+<button class="btn-reset" onclick="resetSteps()">歸零</button>
+</div>
+<div class="inline-input-row">
+<input type="number" id="custom-steps-input" placeholder="直接輸入今日手機步數（例如：6850）" />
+<button style="background:var(--orange);" onclick="setExactSteps()">設定步數</button>
+</div>
+<div style="font-size:11px; color:var(--muted); margin-top:6px;">
+💡 以你目前體重，步行燃脂效率已經唔錯；飯後散步 15–20 分鐘（約 2,000 步）既不傷膝蓋，也能避免劇烈運動產生乳酸阻礙排尿酸。
+</div>
+</div>
+<!-- 睡眠時間與品質追蹤 -->
+<div class="card">
+<div class="card-header">
+<h2 class="card-title">😴 睡眠時間與作息管理</h2>
+<span id="sleep-badge" class="badge badge-purple">未記錄</span>
+</div>
+<div style="display:flex; justify-content:space-between; align-items:baseline;">
+<div class="big-num" style="color:var(--purple);"><span id="sleep-hours">0.0</span> <small>/ <span id="sleep-target">7.5</span> 小時</small></div>
+<div style="font-size:12px; color:var(--muted);">狀態：<strong id="sleep-quality-label">—</strong></div>
+</div>
+<div class="progress-bg">
+<div class="progress-fill" id="sleep-bar" style="width:0%; background:var(--purple);"></div>
+</div>
+<div class="action-btns">
+<button class="btn-sleep" onclick="setSleep(6.0, '偏少')">6.0 小時</button>
+<button class="btn-sleep" onclick="setSleep(7.0, '良好')">7.0 小時</button>
+<button class="btn-sleep" onclick="setSleep(7.5, '充足')">7.5 小時</button>
+<button class="btn-sleep" onclick="setSleep(8.0, '極佳')">8.0 小時</button>
+</div>
+<div class="inline-input-row">
+<input type="number" step="0.5" id="custom-sleep-input" placeholder="自訂時數 (如 6.5)" />
+<select id="custom-sleep-quality">
+<option value="充足深眠">充足深眠</option>
+<option value="良好">良好</option>
+<option value="偏少/晚睡">偏少/晚睡</option>
+<option value="熬夜/淺眠">熬夜/淺眠</option>
+</select>
+<button style="background:var(--purple);" onclick="saveCustomSleep()">儲存</button>
+</div>
+<div class="advice-box" id="sleep-advice" style="border-left-color:var(--purple);">
+🌙 睡滿 7–8 小時能穩定瘦素與皮質醇，避免隔天產生高油高糖食慾，也能減少代謝壓力引發痛風。
+</div>
+</div>
+<!-- 飲水與痛風風險儀表板 -->
+<div class="card">
+<div class="card-header">
+<h2 class="card-title">💧 補水排尿酸 & 痛風監測</h2>
+<span id="gout-badge" class="badge badge-low">痛風風險：低</span>
+</div>
+<div style="display:flex; justify-content:space-between; align-items:baseline;">
+<div class="big-num" style="color:var(--blue);"><span id="water-consumed">0</span> <small>/ <span id="water-target">3200</span> mL</small></div>
+<div style="font-size:12px; color:var(--muted);">咖啡因：<strong id="caffeine-consumed">0</strong> / 400 mg</div>
+</div>
+<div class="progress-bg">
+<div class="progress-fill" id="water-bar" style="width:0%; background:var(--blue);"></div>
+</div>
+<div class="action-btns">
+<button class="btn-water" onclick="addWater(250)">+250mL</button>
+<button class="btn-water" onclick="addWater(500)">+500mL</button>
+<button class="btn-water" onclick="addWater(1000)">+1000mL</button>
+<button class="btn-reset" onclick="resetWater()">歸零</button>
+</div>
+<div class="advice-box" id="gout-advice">
+✅ 今日痛風觸發風險低，持續保持充足飲水即可幫助腎臟穩定排泄尿酸。
+</div>
+</div>
+<!-- 減重進度追蹤卡片 -->
+<div class="card">
+<div class="card-header">
+<h2 class="card-title">🎯 減重進度追蹤（安全排酸速率）</h2>
+<span style="font-size:12px; font-weight:700; color:var(--primary);" id="weight-eta">約 10 週達標</span>
+</div>
+<div style="display:flex; justify-content:space-between; font-size:13px; font-weight:600;">
+<span>目前：<strong id="w-curr-disp">72.0</strong> kg</span>
+<span>還需減：<strong id="w-diff-disp" style="color:var(--amber);">6.0</strong> kg</span>
+<span>目標：<strong id="w-goal-disp" style="color:var(--green);">66.0</strong> kg</span>
+</div>
+<div class="progress-bg">
+<div class="progress-fill" id="weight-bar" style="width:5%; background:var(--green);"></div>
+</div>
+<div style="font-size:11px; color:var(--muted);">💡 痛風體質建議每週減重 0.5–0.8 kg，避免急速燃脂產生過多酮體阻礙尿酸排泄。</div>
+</div>
+<!-- 常吃食物一鍵加入 -->
+<div class="card">
+<div class="card-header">
+<h2 class="card-title">⚡ 常吃餐點快捷加入</h2>
+<span style="font-size:11px; color:var(--muted);">左右滑動選擇</span>
+</div>
+<div class="quick-scroll" id="quick-list"></div>
+</div>
+<!-- 今日飲食明細 -->
+<div class="card">
+<div class="card-header">
+<h2 class="card-title">📋 當日飲食明細 (<span id="food-count">0</span>)</h2>
+<button onclick="clearDayFoods()" style="background:none; border:none; color:var(--muted); font-size:12px; cursor:pointer;">清空當日</button>
+</div>
+<div id="food-list"></div>
+</div>
+</div>
+<button class="fab" onclick="openModal('add-modal')">➕ 記錄食物 / 拍照辨識</button>
+<!-- 新增食物彈窗 -->
+<div class="modal-backdrop" id="add-modal">
+<div class="modal">
+<div class="modal-header">
+<h3>➕ 新增飲食紀錄</h3>
+<button class="close-btn" onclick="closeModal('add-modal')">✕</button>
+</div>
+<div class="photo-box">
+<label for="food-photo-input" style="cursor:pointer; display:block; font-weight:700; color:var(--primary-dark); font-size:14px;">
+📷 拍照 / 上傳食物或營養標籤相片
+</label>
+<div style="font-size:11px; color:var(--muted); margin-top:2px;">支援直接拍攝餐點或包裝營養表，並儲存相片紀錄</div>
+<input type="file" id="food-photo-input" accept="image/*" capture="environment" style="display:none;" onchange="handlePhotoUpload(event)" />
+<img id="photo-preview" class="photo-preview" alt="食物預覽" />
+<div id="photo-ai-hint" style="font-size:12px; color:var(--primary); margin-top:6px; font-weight:600;"></div>
+</div>
+<div class="form-group">
+<label>食物名稱（可輸入關鍵字自動評估痛風風險）</label>
+<input type="text" id="f-name" placeholder="例如：去皮雞胸飯、三文魚、牛排、無糖豆漿" oninput="autoDetectGout()" />
+</div>
+<div class="row-2">
+<div class="form-group">
+<label>餐別</label>
+<select id="f-meal">
+<option value="早餐">早餐</option>
+<option value="午餐">午餐</option>
+<option value="晚餐">晚餐</option>
+<option value="下午茶/點心">下午茶/點心</option>
+<option value="飲品">飲品</option>
+</select>
+</div>
+<div class="form-group">
+<label>食用比例（外食分食計算）</label>
+<select id="f-ratio">
+<option value="1">一人獨享 (100%)</option>
+<option value="0.5">與朋友平分 (50%)</option>
+<option value="0.33">三人分食 (33%)</option>
+<option value="0.75">吃 3/4 份 (75%)</option>
+</select>
+</div>
+</div>
+<div class="row-2">
+<div class="form-group">
+<label>總熱量 (kcal)</label>
+<input type="number" id="f-cal" placeholder="例如：450" />
+</div>
+<div class="form-group">
+<label>痛風風險等級</label>
+<select id="f-gout">
+<option value="low">低風險（安全）</option>
+<option value="mid">中度風險（適量/多喝水）</option>
+<option value="high">高風險（紅肉/內臟/海鮮/高果糖）</option>
+</select>
+</div>
+</div>
+<div class="row-3">
+<div class="form-group">
+<label>蛋白質 (g)</label>
+<input type="number" id="f-protein" placeholder="0" />
+</div>
+<div class="form-group">
+<label>碳水 (g)</label>
+<input type="number" id="f-carbs" placeholder="0" />
+</div>
+<div class="form-group">
+<label>脂肪 (g)</label>
+<input type="number" id="f-fat" placeholder="0" />
+</div>
+</div>
+<div class="form-group">
+<label>咖啡因含量 (mg，如黑咖啡約 150-250mg)</label>
+<input type="number" id="f-caffeine" placeholder="0" />
+</div>
+<button class="btn-primary" onclick="saveNewFood()">儲存這筆飲食紀錄</button>
+</div>
+</div>
+<!-- 個人檔案與目標彈窗 -->
+<div class="modal-backdrop" id="profile-modal">
+<div class="modal">
+<div class="modal-header">
+<h3>👤 個人檔案與每日目標設定</h3>
+<button class="close-btn" onclick="closeModal('profile-modal')">✕</button>
+</div>
+<div class="row-2">
+<div class="form-group">
+<label>性別</label>
+<select id="p-gender">
+<option value="male">男性</option>
+<option value="female">女性</option>
+</select>
+</div>
+<div class="form-group">
+<label>年齡 (歲)</label>
+<input type="number" id="p-age" value="30" />
+</div>
+</div>
+<div class="row-3">
+<div class="form-group">
+<label>身高 (cm)</label>
+<input type="number" id="p-height" value="172" />
+</div>
+<div class="form-group">
+<label>目前體重 (kg)</label>
+<input type="number" step="0.1" id="p-weight" value="72" />
+</div>
+<div class="form-group">
+<label>目標體重 (kg)</label>
+<input type="number" step="0.1" id="p-goal" value="66" />
+</div>
+</div>
+<div class="row-2">
+<div class="form-group">
+<label>每日步數目標 (步)</label>
+<input type="number" step="500" id="p-steps-goal" value="7500" />
+</div>
+<div class="form-group">
+<label>每日睡眠目標 (小時)</label>
+<input type="number" step="0.5" id="p-sleep-goal" value="7.5" />
+</div>
+</div>
+<div class="form-group">
+<label>日常活動量</label>
+<select id="p-activity">
+<option value="1.2">日常運動量少 / 久坐為主</option>
+<option value="1.375">輕度活動（每週散步/快走 2-3 次）</option>
+<option value="1.55">中度運動（每週運動 3-5 次）</option>
+</select>
+</div>
+<div class="advice-box" id="bmr-preview">
+存檔後會顯示依你身體數據推算嘅 BMR、建議攝取熱量同飲水目標
+</div>
+<button class="btn-primary" onclick="saveProfile()">更新檔案並自動重算目標</button>
+</div>
+</div>
+<!-- 安裝與同步說明彈窗 -->
+<div class="modal-backdrop" id="install-modal">
+<div class="modal">
+<div class="modal-header">
+<h3>🩺 Apple 健康同步設定</h3>
+<button class="close-btn" onclick="closeModal('install-modal')">✕</button>
+</div>
+<div style="font-size:13px; color:#334155; display:flex; flex-direction:column; gap:12px;">
+<div style="background:#f0fdfa; padding:12px; border-radius:12px; border:1px solid #99f6e4;">
+<strong>流程說明：</strong>
+<ol style="margin:6px 0 0; padding-left:18px;">
+<li>喺「捷徑」App 建立捷徑：用「尋找健康樣本」讀步數／睡眠／飲水，再用「文字」組成 <code>{"steps":6850,"sleep":7.5,"water":2200}</code>。</li>
+<li>用「打開 URL」打開 <code>https://你的網址/#HEALTH_SYNC:</code> 接住上面嗰段 JSON（捷徑會自動編碼，照貼就得）。</li>
+<li>頁面頂部會出現綠色橫幅，撳「同步數據」即更新當日紀錄。</li>
+<li>冇橫幅或者想自己改？用下面「📋 手動貼上數據」貼上同一段 <code>HEALTH_SYNC:{...}</code>。</li>
+</ol>
+</div>
+<div class="manual-sync-box" style="background:#fff7ed; padding:12px; border-radius:12px; border:1px solid #fed7aa;">
+<strong>📋 手動貼上數據</strong>
+<div class="manual-sync-hint" id="manual-sync-hint">用捷徑複製咗 <code>HEALTH_SYNC:{...}</code> 之後，貼落下面個框再撳「解析並同步」。前綴可以漏咗，直接貼 {...} 都得。</div>
+<textarea id="manual-sync-input" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder='HEALTH_SYNC:{"steps":6850,"sleep":7.5,"water":2500,"weight":105.2}'></textarea>
+<button class="btn-primary" onclick="applyManualSync()">解析並同步</button>
+</div>
+</div>
+</div>
+</div>
+<script>
+(function initPWA() {
+try {
+const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180"><rect width="180" height="180" rx="40" fill="#0f766e"/><text x="90" y="112" font-size="84" text-anchor="middle">🥗</text></svg>`;
+const iconUrl = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgIcon)));
+document.getElementById('apple-touch-icon').href = iconUrl;
+const manifest = {
+name: "個人減脂與痛風控管營養師",
+short_name: "減脂營養師",
+start_url: ".",
+display: "standalone",
+background_color: "#f1f5f9",
+theme_color: "#0f766e",
+icons: [{ src: iconUrl, sizes: "180x180", type: "image/svg+xml" }]
+};
+const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+document.getElementById('manifest-link').href = URL.createObjectURL(manifestBlob);
+} catch (e) {
+console.warn('PWA 圖示或 manifest 建立失敗，主功能不受影響', e);
+}
+})();
+const QUICK_FOODS = [
+{ name: "烚蛋 2 隻 + 全麥多士 1 片", meal: "早餐", cal: 260, protein: 16, carbs: 22, fat: 11, gout: "low", caffeine: 0 },
+{ name: "無糖豆漿 300mL", meal: "早餐", cal: 120, protein: 10, carbs: 6, fat: 6, gout: "low", caffeine: 0 },
+{ name: "雞胸肉沙律（走醬）", meal: "午餐", cal: 320, protein: 38, carbs: 14, fat: 11, gout: "low", caffeine: 0 },
+{ name: "番茄肉醬低GI意粉（半份）", meal: "午餐", cal: 380, protein: 18, carbs: 58, fat: 8, gout: "low", caffeine: 0 },
+{ name: "熱齋啡（無糖無奶）", meal: "飲品", cal: 5, protein: 0, carbs: 1, fat: 0, gout: "low", caffeine: 130 },
+{ name: "無糖綠茶 500mL", meal: "飲品", cal: 0, protein: 0, carbs: 0, fat: 0, gout: "low", caffeine: 60 },
+{ name: "菜 1 碗 + 蒸水蛋 + 半碗飯", meal: "晚餐", cal: 420, protein: 20, carbs: 52, fat: 12, gout: "low", caffeine: 0 },
+{ name: "走油灼菜 + 去皮雞胸 150g", meal: "晚餐", cal: 310, protein: 42, carbs: 12, fat: 8, gout: "low", caffeine: 0 }
+];
+const DEFAULT_PROFILE = {
+gender: "male",
+age: 30,
+height: 172,
+startWeight: 72,
+weight: 72,
+goalWeight: 66,
+stepsGoal: 7500,
+sleepGoal: 7.5,
+activity: 1.2
+};
+let currentDate = todayStr();
+let currentPhotoData = "";
+let pendingSyncData = null;
+function todayStr() {
+const d = new Date();
+return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+function getProfile() {
+const saved = localStorage.getItem("nutri_profile_v3");
+if (!saved) return { ...DEFAULT_PROFILE };
+try { return { ...DEFAULT_PROFILE, ...JSON.parse(saved) }; } catch (e) { return { ...DEFAULT_PROFILE }; }
+}
+function calcTargets(p) {
+const s = p.gender === "male" ? 5 : -161;
+const bmr = Math.round(10 * p.weight + 6.25 * p.height - 5 * p.age + s);
+const tdee = Math.round(bmr * Number(p.activity));
+const calTarget = Math.max(1750, Math.round(tdee - 450));
+const waterTarget = Math.max(2500, Math.round((p.weight * 30) / 100) * 100);
+return { bmr, tdee, calTarget, waterTarget };
+}
+function getDayKey(dateStr) {
+return "nutri_day_v4_" + dateStr;
+}
+function getDayData(dateStr) {
+const raw = localStorage.getItem(getDayKey(dateStr));
+if (raw) {
+let parsed;
+try { parsed = JSON.parse(raw); } catch (e) { parsed = {}; }
+return {
+water: parsed.water || 0,
+steps: parsed.steps || 0,
+sleepHours: parsed.sleepHours || 0,
+sleepQuality: parsed.sleepQuality || "",
+foods: parsed.foods || []
+};
+}
+return { water: 0, steps: 0, sleepHours: 0, sleepQuality: "", foods: [] };
+}
+function saveDayData(dateStr, data) {
+try {
+localStorage.setItem(getDayKey(dateStr), JSON.stringify(data));
+} catch (e) {
+alert('⚠️ 瀏覽器儲存空間不足（通常是相片太多），此筆紀錄未能儲存。');
+}
+}
+function readHashSync() {
+const raw = String(location.hash || "").replace(/^#/, "");
+if (!raw) return;
+let text = raw;
+try { text = decodeURIComponent(raw); } catch (e) { text = raw; }
+if (!/HEALTH_SYNC/i.test(text) && text.charAt(0) !== "{") return;
+const res = parseHealthSync(text);
+if (res.error || !res.payload) {
+alert(`⚠️ 網址帶入嘅數據解析失敗：${res.error || "格式不正確"}`);
+return;
+}
+pendingSyncData = res.payload;
+const itemsDesc = [];
+if (res.payload.steps !== undefined) itemsDesc.push(`步數: ${res.payload.steps}步`);
+if (res.payload.sleep !== undefined) itemsDesc.push(`睡眠: ${res.payload.sleep}小時`);
+if (res.payload.water !== undefined) itemsDesc.push(`飲水: ${res.payload.water}mL`);
+if (res.payload.weight !== undefined) itemsDesc.push(`體重: ${res.payload.weight}kg`);
+const banner = document.getElementById("clipboard-sync-banner");
+const textEl = document.getElementById("clipboard-sync-text");
+if (banner && textEl && itemsDesc.length > 0) {
+textEl.textContent = `由捷徑帶入：${itemsDesc.join(" | ")}`;
+banner.classList.add("show");
+}
+try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
+}
+async function checkClipboardForSync() {
+if (pendingSyncData) return;
+try {
+if (!navigator.clipboard || !navigator.clipboard.readText) {
+revealManualSync("⚠️ 呢個瀏覽器唔支援自動讀取剪貼簿，請改用手動貼上 👇");
+return;
+}
+const text = await navigator.clipboard.readText();
+if (!text || text.indexOf("{") === -1) return;
+const res = parseHealthSync(text);
+if (res.error || !res.payload) return;
+pendingSyncData = res.payload;
+const itemsDesc = [];
+if (pendingSyncData.steps !== undefined) itemsDesc.push(`步數: ${pendingSyncData.steps}步`);
+if (pendingSyncData.sleep !== undefined) itemsDesc.push(`睡眠: ${pendingSyncData.sleep}小時`);
+if (pendingSyncData.water !== undefined) itemsDesc.push(`飲水: ${pendingSyncData.water}mL`);
+if (pendingSyncData.weight !== undefined) itemsDesc.push(`體重: ${pendingSyncData.weight}kg`);
+const banner = document.getElementById("clipboard-sync-banner");
+const textEl = document.getElementById("clipboard-sync-text");
+if (banner && textEl && itemsDesc.length > 0) {
+textEl.textContent = `偵測到：${itemsDesc.join(" | ")}`;
+banner.classList.add("show");
+}
+} catch (err) {
+console.log("剪貼簿讀取暫不支援或權限未開啟", err);
+revealManualSync("⚠️ 瀏覽器唔俾自動讀取剪貼簿，請改用手動貼上 👇");
+}
+}
+function revealManualSync(message) {
+const hint = document.getElementById("manual-sync-hint");
+if (hint && message) hint.textContent = message;
+}
+function parseHealthSync(raw) {
+const s = String(raw == null ? "" : raw).replace(/\u00a0/g, " ").trim();
+if (!s) return { error: "請先貼上 HEALTH_SYNC:{...} 內容" };
+if (!/HEALTH_SYNC/i.test(s) && s.charAt(0) !== "{") {
+return { error: "搵唔到 HEALTH_SYNC: 前綴，請確認複製嘅內容完整" };
+}
+const start = s.indexOf("{");
+const end = s.lastIndexOf("}");
+if (start < 0 || end <= start) {
+return { error: "格式唔完整：HEALTH_SYNC: 後面要有一段 {...} JSON" };
+}
+try {
+return { payload: JSON.parse(s.slice(start, end + 1)) };
+} catch (e) {
+return { error: `JSON 解析失敗（${e.message}），請確認 {...} 內容冇缺漏` };
+}
+}
+function syncNumber(value) {
+if (value === undefined || value === null || value === "") return null;
+const cleaned = String(value).replace(/[,，\s]/g, "");
+if (!cleaned) return null;
+const n = Number(cleaned);
+return isNaN(n) ? null : n;
+}
+function applySyncPayload(payload) {
+if (!payload) return false;
+const data = getDayData(currentDate);
+const profile = getProfile();
+let applied = 0;
+const steps = syncNumber(payload.steps);
+if (steps !== null) {
+data.steps = Math.max(0, Math.round(steps));
+applied++;
+}
+const sleep = syncNumber(payload.sleep);
+if (sleep !== null) {
+data.sleepHours = Math.min(24, Math.max(0, Math.round(sleep * 10) / 10));
+if (!data.sleepQuality || data.sleepQuality === "未記錄") {
+data.sleepQuality = data.sleepHours >= 7 ? "充足" : "偏少";
+}
+applied++;
+}
+const water = syncNumber(payload.water);
+if (water !== null) {
+data.water = Math.max(0, Math.round(water));
+applied++;
+}
+const weight = syncNumber(payload.weight);
+if (weight !== null && weight > 0) {
+profile.weight = Math.round(weight * 10) / 10;
+localStorage.setItem("nutri_profile_v3", JSON.stringify(profile));
+applied++;
+}
+if (applied === 0) return false;
+saveDayData(currentDate, data);
+document.getElementById("clipboard-sync-banner").classList.remove("show");
+renderAll();
+return true;
+}
+function applyClipboardSync() {
+if (!pendingSyncData) return;
+const ok = applySyncPayload(pendingSyncData);
+pendingSyncData = null;
+if (ok) alert("✅ 已成功同步 Apple 健康數據！");
+}
+function applyManualSync() {
+const box = document.getElementById("manual-sync-input");
+if (!box) return;
+const res = parseHealthSync(box.value);
+if (res.error) {
+alert(`⚠️ ${res.error}`);
+return;
+}
+if (!applySyncPayload(res.payload)) {
+alert("⚠️ 貼上嘅內容搵唔到 steps / sleep / water / weight 任何有效數值");
+return;
+}
+box.value = "";
+alert("✅ 已套用手動貼上嘅健康數據！");
+closeModal("install-modal");
+}
+function changeDate(offset) {
+const parts = currentDate.split("-").map(Number);
+const d = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
+d.setUTCDate(d.getUTCDate() + offset);
+currentDate = d.toISOString().split("T")[0];
+renderAll();
+}
+function addWater(ml) {
+const data = getDayData(currentDate);
+data.water += ml;
+saveDayData(currentDate, data);
+renderAll();
+}
+function resetWater() {
+if (!confirm("確定將當日飲水量歸零嗎？")) return;
+const data = getDayData(currentDate);
+data.water = 0;
+saveDayData(currentDate, data);
+renderAll();
+}
+function addSteps(num) {
+const data = getDayData(currentDate);
+data.steps += num;
+saveDayData(currentDate, data);
+renderAll();
+}
+function setExactSteps() {
+const val = Number(document.getElementById("custom-steps-input").value);
+if (isNaN(val) || val < 0) return;
+const data = getDayData(currentDate);
+data.steps = Math.round(val);
+saveDayData(currentDate, data);
+document.getElementById("custom-steps-input").value = "";
+renderAll();
+}
+function resetSteps() {
+if (!confirm("確定將當日步數歸零嗎？")) return;
+const data = getDayData(currentDate);
+data.steps = 0;
+saveDayData(currentDate, data);
+renderAll();
+}
+function setSleep(hrs, quality) {
+const data = getDayData(currentDate);
+data.sleepHours = hrs;
+data.sleepQuality = quality;
+saveDayData(currentDate, data);
+renderAll();
+}
+function saveCustomSleep() {
+const hrs = Number(document.getElementById("custom-sleep-input").value);
+const qual = document.getElementById("custom-sleep-quality").value;
+if (isNaN(hrs) || hrs <= 0 || hrs > 24) {
+alert("請輸入有效的睡眠時數（例如 7.5）");
+return;
+}
+const data = getDayData(currentDate);
+data.sleepHours = hrs;
+data.sleepQuality = qual;
+saveDayData(currentDate, data);
+document.getElementById("custom-sleep-input").value = "";
+renderAll();
+}
+function addQuickFood(idx) {
+const item = QUICK_FOODS[idx];
+const data = getDayData(currentDate);
+data.foods.push({ id: Date.now(), ...item });
+saveDayData(currentDate, data);
+renderAll();
+}
+function deleteFood(id) {
+const data = getDayData(currentDate);
+data.foods = data.foods.filter(f => f.id !== id);
+saveDayData(currentDate, data);
+renderAll();
+}
+function clearDayFoods() {
+if (!confirm("確定清空當日所有飲食紀錄嗎？")) return;
+const data = getDayData(currentDate);
+data.foods = [];
+saveDayData(currentDate, data);
+renderAll();
+}
+function autoDetectGout() {
+const name = document.getElementById("f-name").value.toLowerCase();
+const highKeys = ["內臟", "肝", "腎", "海鮮", "蝦", "蟹", "貝", "帶子", "生蠔", "啤酒", "老火湯", "濃湯", "果糖", "奶昔", "漢堡", "牛肉", "牛排", "羊肉", "火鍋"];
+const midKeys = ["豬肉", "肉醬", "意粉", "雞扒", "炸", "薯條", "芒果", "雪糕", "蜜糖", "魚", "豆卜"];
+const sel = document.getElementById("f-gout");
+if (highKeys.some(k => name.includes(k))) sel.value = "high";
+else if (midKeys.some(k => name.includes(k))) sel.value = "mid";
+else sel.value = "low";
+}
+function handlePhotoUpload(e) {
+const file = e.target.files[0];
+if (!file) return;
+const reader = new FileReader();
+reader.onload = function(ev) {
+const img = new Image();
+img.onload = function() {
+const canvas = document.createElement("canvas");
+const maxW = 480;
+const scale = Math.min(1, maxW / img.width);
+canvas.width = img.width * scale;
+canvas.height = img.height * scale;
+const ctx = canvas.getContext("2d");
+ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+currentPhotoData = canvas.toDataURL("image/jpeg", 0.72);
+const prev = document.getElementById("photo-preview");
+prev.src = currentPhotoData;
+prev.style.display = "block";
+document.getElementById("photo-ai-hint").textContent = "✅ 已載入相片！請填寫或微調下方食物名稱與熱量後儲存。";
+if (!document.getElementById("f-name").value) {
+document.getElementById("f-name").value = file.name.replace(/\.[^/.]+$/, "") || "拍照記錄餐點";
+}
+};
+img.src = ev.target.result;
+};
+reader.readAsDataURL(file);
+}
+function saveNewFood() {
+const name = document.getElementById("f-name").value.trim();
+const calRaw = Number(document.getElementById("f-cal").value);
+if (!name || isNaN(calRaw)) {
+alert("請輸入食物名稱與熱量！");
+return;
+}
+const ratio = Number(document.getElementById("f-ratio").value);
+const ratioLabel = ratio === 1 ? "" :  `(${Math.round(ratio * 100)}%份量)`;
+const item = {
+id: Date.now(),
+name: name + ratioLabel,
+meal: document.getElementById("f-meal").value,
+cal: Math.round(calRaw * ratio),
+protein: Math.round((Number(document.getElementById("f-protein").value) || 0) * ratio),
+carbs: Math.round((Number(document.getElementById("f-carbs").value) || 0) * ratio),
+fat: Math.round((Number(document.getElementById("f-fat").value) || 0) * ratio),
+gout: document.getElementById("f-gout").value,
+caffeine: Math.round((Number(document.getElementById("f-caffeine").value) || 0) * ratio),
+photo: currentPhotoData || ""
+};
+const data = getDayData(currentDate);
+data.foods.push(item);
+saveDayData(currentDate, data);
+document.getElementById("f-name").value = "";
+document.getElementById("f-cal").value = "";
+document.getElementById("f-protein").value = "";
+document.getElementById("f-carbs").value = "";
+document.getElementById("f-fat").value = "";
+document.getElementById("f-caffeine").value = "";
+document.getElementById("f-ratio").value = "1";
+document.getElementById("photo-preview").style.display = "none";
+document.getElementById("photo-ai-hint").textContent = "";
+currentPhotoData = "";
+closeModal("add-modal");
+renderAll();
+}
+function saveProfile() {
+const oldP = getProfile();
+const p = {
+gender: document.getElementById("p-gender").value,
+age: Number(document.getElementById("p-age").value) || 30,
+height: Number(document.getElementById("p-height").value) || 172,
+startWeight: oldP.startWeight || 72,
+weight: Number(document.getElementById("p-weight").value) || 72,
+goalWeight: Number(document.getElementById("p-goal").value) || 66,
+stepsGoal: Number(document.getElementById("p-steps-goal").value) || 7500,
+sleepGoal: Number(document.getElementById("p-sleep-goal").value) || 7.5,
+activity: Number(document.getElementById("p-activity").value) || 1.2
+};
+localStorage.setItem("nutri_profile_v3", JSON.stringify(p));
+closeModal("profile-modal");
+renderAll();
+}
+function openModal(id) {
+if (id === "profile-modal") {
+const p = getProfile();
+document.getElementById("p-gender").value = p.gender;
+document.getElementById("p-age").value = p.age;
+document.getElementById("p-height").value = p.height;
+document.getElementById("p-weight").value = p.weight;
+document.getElementById("p-goal").value = p.goalWeight;
+document.getElementById("p-steps-goal").value = p.stepsGoal;
+document.getElementById("p-sleep-goal").value = p.sleepGoal;
+document.getElementById("p-activity").value = String(p.activity);
+const t = calcTargets(p);
+document.getElementById("bmr-preview").textContent = `依目前身體數據推算：BMR 約 ${t.bmr} kcal ｜ 每日 TDEE 約 ${t.tdee} kcal ｜ 減脂建議攝取 ${t.calTarget} kcal ｜ 每日飲水目標 ${t.waterTarget} mL`;
+}
+document.getElementById(id).classList.add("open");
+}
+function closeModal(id) {
+document.getElementById(id).classList.remove("open");
+}
+function renderQuickList() {
+const el = document.getElementById("quick-list");
+el.innerHTML = QUICK_FOODS.map((f, idx) => `<button class="quick-chip" onclick="addQuickFood(${idx})"> <strong>+ ${f.name}</strong> <span>${f.cal} kcal · 蛋白 ${f.protein}g</span> </button>`).join("");
+}
+function renderAll() {
+const p = getProfile();
+const targets = calcTargets(p);
+const data = getDayData(currentDate);
+document.getElementById("current-date-label").textContent = currentDate;
+document.getElementById("profile-summary").textContent = `${p.gender === "male" ? "男" : "女"} · ${p.age}歲 · ${p.height}cm · ${p.weight}kg → 目標 ${p.goalWeight}kg`;
+const steps = data.steps || 0;
+const stepKm = ((steps * (p.height * 0.415 / 100)) / 1000).toFixed(1);
+const stepKcal = Math.round(steps * p.weight * 0.00052);
+document.getElementById("steps-consumed").textContent = steps.toLocaleString();
+document.getElementById("steps-target").textContent = p.stepsGoal.toLocaleString();
+document.getElementById("step-km").textContent = stepKm;
+document.getElementById("step-kcal").textContent = stepKcal;
+document.getElementById("step-burn-inline").textContent = stepKcal;
+const stepPct = Math.min(100, Math.round((steps / p.stepsGoal) * 100));
+document.getElementById("steps-bar").style.width = stepPct + "%";
+const stepBadge = document.getElementById("step-badge");
+if (steps >= p.stepsGoal) {
+stepBadge.className = "badge badge-low";
+stepBadge.textContent = "🎉 步數已達標";
+} else if (steps >= p.stepsGoal * 0.5) {
+stepBadge.className = "badge badge-mid";
+stepBadge.textContent = `已完成 ${stepPct}%`;
+} else {
+stepBadge.className = "badge badge-orange";
+stepBadge.textContent = "飯後散步累積中";
+}
+const sleepHrs = data.sleepHours || 0;
+document.getElementById("sleep-hours").textContent = sleepHrs.toFixed(1);
+document.getElementById("sleep-target").textContent = p.sleepGoal.toFixed(1);
+document.getElementById("sleep-quality-label").textContent = data.sleepQuality || "未記錄";
+const sleepPct = Math.min(100, Math.round((sleepHrs / p.sleepGoal) * 100));
+document.getElementById("sleep-bar").style.width = sleepPct + "%";
+const sleepBadge = document.getElementById("sleep-badge");
+const sleepAdvice = document.getElementById("sleep-advice");
+if (sleepHrs === 0) {
+sleepBadge.className = "badge badge-purple";
+sleepBadge.textContent = "待記錄昨晚睡眠";
+sleepAdvice.innerHTML = "🌙 點擊上方按鈕記錄昨晚睡眠時數，追蹤睡眠對減脂與尿酸代謝的影響。";
+} else if (sleepHrs >= 7) {
+sleepBadge.className = "badge badge-low";
+sleepBadge.textContent = "睡眠充足 · 利於燃脂";
+sleepAdvice.innerHTML = `✨ 睡滿 <strong>${sleepHrs} 小時</strong>（${data.sleepQuality || "良好"}），身體修復與瘦素分泌理想，有助穩定控制今日食慾與尿酸。`;
+} else {
+sleepBadge.className = "badge badge-mid";
+sleepBadge.textContent = "睡眠偏少 · 留意食慾";
+sleepAdvice.innerHTML = `⚠️ 睡眠僅 <strong>${sleepHrs} 小時</strong>，睡眠不足易令皮質醇升高、增加對甜食與澱粉的渴望，今天請多喝水並嚴格控制零食。`;
+}
+let totalCal = 0, totalP = 0, totalC = 0, totalF = 0, totalCaf = 0;
+let highGoutCount = 0, midGoutCount = 0;
+data.foods.forEach(f => {
+totalCal += f.cal || 0;
+totalP += f.protein || 0;
+totalC += f.carbs || 0;
+totalF += f.fat || 0;
+totalCaf += f.caffeine || 0;
+if (f.gout === "high") highGoutCount++;
+if (f.gout === "mid") midGoutCount++;
+});
+const effectiveTarget = targets.calTarget + stepKcal;
+const netCal = Math.max(0, totalCal - stepKcal);
+document.getElementById("cal-consumed").textContent = totalCal;
+document.getElementById("cal-target").textContent = effectiveTarget;
+document.getElementById("net-cal-inline").textContent = netCal;
+const remain = effectiveTarget - totalCal;
+document.getElementById("cal-remain").textContent = remain >= 0 ? remain : `超標 ${Math.abs(remain)}`;
+const calPct = Math.min(100, Math.round((totalCal / effectiveTarget) * 100));
+const calBar = document.getElementById("cal-bar");
+calBar.style.width = calPct + "%";
+calBar.style.background = remain < 0 ? "var(--red)" : "var(--primary)";
+const calStatus = document.getElementById("cal-status");
+if (remain < 0) {
+calStatus.className = "badge badge-high";
+calStatus.textContent = "已超出今日配額";
+} else if (calPct > 85) {
+calStatus.className = "badge badge-mid";
+calStatus.textContent = "接近目標上限";
+} else {
+calStatus.className = "badge badge-low";
+calStatus.textContent = "減脂進度理想";
+}
+document.getElementById("macro-protein").textContent = totalP + "g";
+document.getElementById("macro-carbs").textContent = totalC + "g";
+document.getElementById("macro-fat").textContent = totalF + "g";
+const diff = Math.max(0, +(p.weight - p.goalWeight).toFixed(1));
+const totalToLose = Math.max(0.1, p.startWeight - p.goalWeight);
+const lost = Math.max(0, p.startWeight - p.weight);
+const wPct = Math.min(100, Math.max(3, Math.round((lost / totalToLose) * 100)));
+document.getElementById("w-curr-disp").textContent = p.weight.toFixed(1);
+document.getElementById("w-diff-disp").textContent = diff.toFixed(1);
+document.getElementById("w-goal-disp").textContent = p.goalWeight.toFixed(1);
+document.getElementById("weight-bar").style.width = wPct + "%";
+document.getElementById("weight-eta").textContent = diff > 0 ? `約 ${Math.ceil(diff / 0.6)} 週達標` : "🎉 已達成目標！";
+document.getElementById("water-consumed").textContent = data.water;
+document.getElementById("water-target").textContent = targets.waterTarget;
+document.getElementById("caffeine-consumed").textContent = totalCaf;
+const wtrPct = Math.min(100, Math.round((data.water / targets.waterTarget) * 100));
+document.getElementById("water-bar").style.width = wtrPct + "%";
+const goutBadge = document.getElementById("gout-badge");
+const goutAdvice = document.getElementById("gout-advice");
+if (highGoutCount > 0) {
+goutBadge.className = "badge badge-high";
+goutBadge.textContent = "痛風風險：偏高";
+goutAdvice.innerHTML = `⚠️ 今日攝取了 <strong>${highGoutCount} 項高風險食物</strong>（紅肉/海鮮/內臟/高果糖），請務必喝足 <strong>${targets.waterTarget} mL</strong> 清水並禁酒，避免劇烈運動產生乳酸阻礙排酸。`;
+} else if (midGoutCount > 0 || data.water < targets.waterTarget * 0.6) {
+goutBadge.className = "badge badge-mid";
+goutBadge.textContent = "痛風風險：中度留意";
+goutAdvice.innerHTML = `💧 目前飲水量為 <strong>${data.water} mL</strong>，建議分次補足至 <strong>${targets.waterTarget} mL</strong> 以稀釋尿酸；晚間避免含糖飲品與濃湯。`;
+} else {
+goutBadge.className = "badge badge-low";
+goutBadge.textContent = "痛風風險：低（安全）";
+goutAdvice.innerHTML = `✅ 今日飲食普林與果糖控制極佳，且飲水量充足，非常有助維持尿酸平穩！`;
+}
+document.getElementById("food-count").textContent = data.foods.length;
+const listEl = document.getElementById("food-list");
+if (data.foods.length === 0) {
+listEl.innerHTML = `<div style="text-align:center; color:var(--muted); padding:18px 0; font-size:13px;">今日尚未記錄任何餐點，點擊下方按鈕或上方快捷鍵開始記錄！</div>`;
+} else {
+listEl.innerHTML = data.foods.map(f => {
+const gLabel = f.gout === "high" ? `<span class="badge badge-high">高痛風風險</span>` : (f.gout === "mid" ? `<span class="badge badge-mid">中風險</span>` : `<span class="badge badge-low">低風險</span>`);
+const thumb = f.photo ? `<img src="${f.photo}" class="food-thumb" alt="餐點相片" />` : "";
+return `<div class="food-item"> ${thumb} <div style="flex:1;"> <div class="food-name">[${f.meal}] ${f.name}</div> <div class="food-meta">${f.cal} kcal · 蛋白 ${f.protein}g · 碳水 ${f.carbs}g · 脂肪 ${f.fat}g ${f.caffeine ?`· 咖啡因 ${f.caffeine}mg`: ""}</div> <div style="margin-top:4px;">${gLabel}</div> </div> <button class="del-btn" onclick="deleteFood(${f.id})">刪除</button> </div>`;
+}).join("");
+}
+}
+renderQuickList();
+renderAll();
+readHashSync();
+checkClipboardForSync();
+</script>
+</body>
+</html>
+
