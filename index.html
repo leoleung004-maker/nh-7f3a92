@@ -824,7 +824,7 @@ font: inherit;
 </div>
 </div>
 </div>
-<div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">網頁版本 v2026-11-26.1</div>
+<div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">網頁版本 v2026-11-26.2</div>
 </div>
 </div>
 <!-- 安裝與同步說明彈窗 -->
@@ -897,6 +897,7 @@ sleepGoal: 7.5,
 activity: 1.2
 };
 let currentDate = todayStr();
+let followToday = true;
 let currentPhotoData = "";
 let pendingSyncData = null;
 function todayStr() {
@@ -1182,6 +1183,7 @@ const parts = currentDate.split("-").map(Number);
 const d = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
 d.setUTCDate(d.getUTCDate() + offset);
 currentDate = d.toISOString().split("T")[0];
+followToday = false;
 renderAll();
 }
 function addWater(ml) {
@@ -1713,6 +1715,18 @@ renderQuickList();
 renderAll();
 readHashSync();
 checkClipboardForSync();
+function refreshOnResume() {
+if (document.visibilityState && document.visibilityState !== "visible") return;
+if (followToday) currentDate = todayStr();
+renderAll();
+}
+if (document.addEventListener) {
+document.addEventListener("visibilitychange", refreshOnResume);
+}
+if (typeof window !== "undefined" && window.addEventListener) {
+window.addEventListener("focus", refreshOnResume);
+window.addEventListener("pageshow", refreshOnResume);
+}
 </script>
 </body>
 </html>
