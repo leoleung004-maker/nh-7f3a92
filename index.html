@@ -824,7 +824,7 @@ font: inherit;
 </div>
 </div>
 </div>
-<div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">網頁版本 v2026-11-25.2</div>
+<div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">網頁版本 v2026-11-25.3</div>
 </div>
 </div>
 <!-- 安裝與同步說明彈窗 -->
@@ -1123,12 +1123,27 @@ document.getElementById("clipboard-sync-banner").classList.remove("show");
 renderAll();
 return true;
 }
+function describeSyncPayload(payload) {
+const parts = [];
+["steps", "sleep", "water", "weight"].forEach(function (k) {
+if (payload && payload[k] !== undefined) parts.push(k + "=" + payload[k]);
+});
+return parts.length ? parts.join(" · ").slice(0, 90) : "（空）";
+}
 function applyClipboardSync() {
 if (!pendingSyncData) return;
-const ok = applySyncPayload(pendingSyncData);
+const payload = pendingSyncData;
+const ok = applySyncPayload(payload);
 pendingSyncData = null;
-if (ok) alert("✅ 已成功同步 Apple 健康數據！");
-else alert("⚠️ 收到嘅數據冇任何有效數值（步數／睡眠／飲水／體重都係空），所以冇嘢可以更新。請檢查捷徑「文字」入面 steps= 後面有冇真正插入變數。");
+if (ok) {
+alert("✅ 已成功同步 Apple 健康數據！");
+} else {
+const desc = describeSyncPayload(payload);
+const looksPlaceholder = /【|{\s*步骤|Steps|Sleep|Water|Weight/.test(desc);
+alert(looksPlaceholder
+? `⚠️ 收到嘅係示範文字，唔係數字：\n${desc}\n\n請喺捷徑「文字」動作入面，將【Steps】呢類字刪走，改為撳鍵盤上方嘅真正變數。`
+: `⚠️ 收到嘅數據冇有效數值：\n${desc}\n\n請檢查捷徑入面每個變數有冇真正讀到數字。`);
+}
 }
 function applyManualSync() {
 const box = document.getElementById("manual-sync-input");
