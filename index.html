@@ -650,6 +650,20 @@ font: inherit;
 </div>
 <div style="font-size:11px; color:var(--muted);">💡 痛風體質建議每週減重 0.5–0.8 kg，避免急速燃脂產生過多酮體阻礙尿酸排泄。</div>
 </div>
+<!-- 趨勢圖 -->
+<div class="card">
+<div class="card-header">
+<h2 class="card-title">📈 體重與熱量趨勢</h2>
+<div style="display:flex; gap:6px;">
+<button class="mini-sync-btn" id="trend-7" onclick="setTrendDays(7)">7 日</button>
+<button class="mini-sync-btn" id="trend-14" onclick="setTrendDays(14)">14 日</button>
+</div>
+</div>
+<div id="trend-weight-summary" style="font-size:12px; color:var(--muted);"></div>
+<div id="trend-weight-chart"></div>
+<div id="trend-cal-summary" style="font-size:12px; color:var(--muted); margin-top:12px;"></div>
+<div id="trend-cal-chart"></div>
+</div>
 <!-- 常吃食物一鍵加入 -->
 <div class="card">
 <div class="card-header">
@@ -855,7 +869,7 @@ font: inherit;
 </div>
 </div>
 </div>
-<div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">網頁版本 v2026-11-27.1</div>
+<div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">網頁版本 v2026-11-28.1</div>
 </div>
 </div>
 <!-- 安裝與同步說明彈窗 -->
@@ -1702,6 +1716,105 @@ document.getElementById(id).classList.add("open");
 function closeModal(id) {
 document.getElementById(id).classList.remove("open");
 }
+let trendDays = 7;
+function setTrendDays(n) {
+trendDays = (n === 14) ? 14 : 7;
+renderTrend();
+}
+function getTrendRows(n) {
+const rows = [];
+const parts = String(currentDate).split("-").map(Number);
+for (let i = n - 1; i >= 0; i--) {
+const d = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
+d.setUTCDate(d.getUTCDate() - i);
+const key = d.toISOString().split("T")[0];
+let day = null;
+try { const raw = localStorage.getItem("nutri_day_v4_" + key); if (raw) day = JSON.parse(raw); } catch (e) { day = null; }
+const weight = (day && typeof day.weight === "number" && day.weight > 0) ? day.weight : null;
+let cal = 0;
+if (day && Array.isArray(day.foods)) {
+day.foods.forEach(function (f) { cal += Number(f.cal) || 0; });
+}
+rows.push({ date: key, weight: weight, cal: cal });
+}
+return rows;
+}
+function renderTrend() {
+const wrap = document.getElementById("trend-weight-chart");
+if (!wrap) return;
+const rows = getTrendRows(trendDays);
+const btn7 = document.getElementById("trend-7");
+const btn14 = document.getElementById("trend-14");
+if (btn7) btn7.style.background = trendDays === 7 ? "var(--primary)" : "#f1f5f9";
+if (btn7) btn7.style.color = trendDays === 7 ? "#fff" : "var(--text)";
+if (btn14) btn14.style.background = trendDays === 14 ? "var(--primary)" : "#f1f5f9";
+if (btn14) btn14.style.color = trendDays === 14 ? "#fff" : "var(--text)";
+const withWeight = rows.filter(function (r) { return r.weight !== null; });
+const wSum = document.getElementById("trend-weight-summary");
+if (withWeight.length >= 2) {
+const first = withWeight[0].weight;
+const last = withWeight[withWeight.length - 1].weight;
+const delta = +(last - first).toFixed(1);
+const sign = delta > 0 ? "+" : (delta < 0 ? "−" : "±");
+if (wSum) wSum.textContent = `體重：${first.toFixed(1)} → ${last.toFixed(1)} kg（${sign}${Math.abs(delta).toFixed(1)} kg，${withWeight.length} 次紀錄）`;
+} else if (withWeight.length === 1) {
+if (wSum) wSum.textContent = `體重：只有 1 次紀錄（${withWeight[0].weight.toFixed(1)} kg）`;
+} else {
+if (wSum) wSum.textContent = "體重：呢段時間未有紀錄";
+}
+renderWeightChart(withWeight);
+const target = calcTargets(getProfile()).calTarget;
+const logged = rows.filter(function (r) { return r.cal > 0; });
+const avg = logged.length ? Math.round(logged.reduce(function (s, r) { return s + r.cal; }, 0) / logged.length) : 0;
+const cSum = document.getElementById("trend-cal-summary");
+if (cSum) cSum.textContent = logged.length ? `熱量：平均 ${avg} kcal／日（目標 ${target} kcal，${logged.length} 日有紀錄）` : `熱量：目標 ${target} kcal，呢段時間未有紀錄`;
+renderCalChart(rows, target);
+}
+function renderWeightChart(pts) {
+const el = document.getElementById("trend-weight-chart");
+if (!el) return;
+if (pts.length < 2) {
+el.innerHTML = `<div style="font-size:12px; color:var(--muted); padding:10px 0;">需要至少 2 日體重紀錄先畫到線（由 Health 同步或撳「記錄體重」）</div>`;
+return;
+}
+const W = 300, H = 90, pad = 12;
+const ws = pts.map(function (p) { return p.weight; });
+const min = Math.min.apply(null, ws);
+const max = Math.max.apply(null, ws);
+const span = Math.max(0.5, max - min);
+const xAt = function (i) { return pad + (i * (W - pad * 2)) / (pts.length - 1); };
+const yAt = function (w) { return pad + ((max - w) / span) * (H - pad * 2); };
+const line = pts.map(function (p, i) { return xAt(i).toFixed(1) + "," + yAt(p.weight).toFixed(1); }).join(" ");
+const dots = pts.map(function (p, i) { return `<circle cx="${xAt(i).toFixed(1)}" cy="${yAt(p.weight).toFixed(1)}" r="2.8" fill="#16a34a" />`; }).join("");
+el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%; height:110px; display:block;">` +
+`<line x1="${pad}" y1="${H - pad}" x2="${W - pad}" y2="${H - pad}" stroke="#e2e8f0" stroke-width="1" />` +
+`<polyline points="${line}" fill="none" stroke="#16a34a" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" />` +
+dots +
+`<text x="${pad}" y="12" font-size="9" fill="#64748b">${max.toFixed(1)} kg</text>` +
+`<text x="${pad}" y="${H - 2}" font-size="9" fill="#64748b">${min.toFixed(1)} kg</text>` +
+`</svg>`;
+}
+function renderCalChart(rows, target) {
+const el = document.getElementById("trend-cal-chart");
+if (!el) return;
+const W = 300, H = 88, pad = 10;
+const vals = rows.map(function (r) { return r.cal; });
+const maxVal = Math.max.apply(null, vals.concat([target || 0, 1]));
+const bw = (W - pad * 2) / rows.length;
+let bars = "";
+rows.forEach(function (r, i) {
+const h = (r.cal / maxVal) * (H - pad * 2 - 4);
+const x = pad + i * bw + 1.5;
+const y = H - pad - h;
+const over = target && r.cal > target;
+bars += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${Math.max(3, bw - 4).toFixed(1)}" height="${Math.max(0, h).toFixed(1)}" rx="2" fill="${over ? "#dc2626" : "#0f766e"}" opacity="0.85" />`;
+});
+const ty = H - pad - ((target || 0) / maxVal) * (H - pad * 2 - 4);
+el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%; height:100px; display:block;">` + bars +
+`<line x1="${pad}" y1="${ty.toFixed(1)}" x2="${W - pad}" y2="${ty.toFixed(1)}" stroke="#94a3b8" stroke-width="1" stroke-dasharray="3 3" />` +
+`<text x="${pad}" y="10" font-size="9" fill="#64748b">目標 ${target} kcal（虛線）</text>` +
+`</svg>`;
+}
 function renderQuickList() {
 const el = document.getElementById("quick-list");
 el.innerHTML = QUICK_FOODS.map((f, idx) => `<button class="quick-chip" onclick="addQuickFood(${idx})"> <strong>+ ${f.name}</strong> <span>${f.cal} kcal · 蛋白 ${f.protein}g</span> </button>`).join("");
@@ -1838,6 +1951,7 @@ goutBadge.textContent = "痛風風險：低（安全）";
 goutAdvice.innerHTML = `✅ 今日飲食普林與果糖控制極佳，且飲水量充足，非常有助維持尿酸平穩！`;
 }
 document.getElementById("food-count").textContent = data.foods.length;
+if (typeof renderTrend === "function") renderTrend();
 const listEl = document.getElementById("food-list");
 if (data.foods.length === 0) {
 listEl.innerHTML = `<div style="text-align:center; color:var(--muted); padding:18px 0; font-size:13px;">今日尚未記錄任何餐點，點擊下方按鈕或上方快捷鍵開始記錄！</div>`;
