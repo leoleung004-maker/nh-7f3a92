@@ -689,7 +689,7 @@ font: inherit;
 <input type="text" id="f-name" placeholder="例如：叉燒飯、雞胸、奶茶" oninput="onFoodNameInput()" />
 <div id="food-suggest" class="suggest-list"></div>
 </div>
-<div class="row-3">
+<div class="row-2">
 <div class="form-group">
 <label>餐別</label>
 <select id="f-meal">
@@ -704,6 +704,8 @@ font: inherit;
 <label>食飯時間</label>
 <input type="time" id="f-time" />
 </div>
+</div>
+<div class="row-2">
 <div class="form-group">
 <label>食用比例</label>
 <select id="f-ratio">
@@ -713,12 +715,12 @@ font: inherit;
 <option value="0.75">吃 3/4 份 (75%)</option>
 </select>
 </div>
-</div>
-<div class="row-2">
 <div class="form-group">
 <label>總熱量 (kcal)</label>
 <input type="number" id="f-cal" placeholder="例如：450" />
 </div>
+</div>
+<div class="row-2">
 <div class="form-group">
 <label>痛風風險等級</label>
 <select id="f-gout">
@@ -726,6 +728,10 @@ font: inherit;
 <option value="mid">中度風險（適量/多喝水）</option>
 <option value="high">高風險（紅肉/內臟/海鮮/高果糖）</option>
 </select>
+</div>
+<div class="form-group">
+<label>咖啡因 (mg)</label>
+<input type="number" id="f-caffeine" placeholder="例如：150" />
 </div>
 </div>
 <div class="row-3">
@@ -741,10 +747,6 @@ font: inherit;
 <label>脂肪 (g)</label>
 <input type="number" id="f-fat" placeholder="0" />
 </div>
-</div>
-<div class="form-group">
-<label>咖啡因含量 (mg，如黑咖啡約 150-250mg)</label>
-<input type="number" id="f-caffeine" placeholder="0" />
 </div>
 <button class="btn-primary" onclick="saveNewFood()">儲存這筆飲食紀錄</button>
 </div>
@@ -823,7 +825,7 @@ font: inherit;
 </div>
 </div>
 </div>
-<div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">網頁版本 v2026-11-26.3</div>
+<div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">網頁版本 v2026-11-26.4</div>
 </div>
 </div>
 <!-- 安裝與同步說明彈窗 -->
