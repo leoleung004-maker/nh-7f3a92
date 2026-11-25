@@ -824,7 +824,7 @@ font: inherit;
 </div>
 </div>
 </div>
-<div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">網頁版本 v2026-11-25.3</div>
+<div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">網頁版本 v2026-11-26.1</div>
 </div>
 </div>
 <!-- 安裝與同步說明彈窗 -->
@@ -990,11 +990,27 @@ if (res.payload.water !== undefined) itemsDesc.push(`飲水: ${res.payload.water
 if (res.payload.weight !== undefined) itemsDesc.push(`體重: ${res.payload.weight}kg`);
 const banner = document.getElementById("clipboard-sync-banner");
 const textEl = document.getElementById("clipboard-sync-text");
-if (banner && textEl && itemsDesc.length > 0) {
+if (isAutoApply(res.payload)) {
+const autoDesc = itemsDesc.join(" | ");
+const ok = applySyncPayload(res.payload);
+pendingSyncData = null;
+if (banner && textEl) {
+textEl.textContent = ok ? `✅ 已自動同步：${autoDesc}` : "⚠️ 自動同步冇有效數值，請用下面手動貼上";
+banner.classList.add("show");
+setTimeout(function () { banner.classList.remove("show"); }, 9000);
+}
+} else if (banner && textEl && itemsDesc.length > 0) {
 textEl.textContent = `由捷徑帶入：${itemsDesc.join(" | ")}`;
 banner.classList.add("show");
 }
 try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
+}
+function isAutoApply(payload) {
+if (!payload) return false;
+const v = payload.auto;
+if (v === undefined || v === null) return false;
+const s = String(v).trim();
+return s === "1" || /^true$/i.test(s);
 }
 async function checkClipboardForSync() {
 if (pendingSyncData) return;
@@ -1065,7 +1081,7 @@ const m = pair.match(/^([A-Za-z_]+)\s*[=:]\s*(.*)$/);
 if (!m) continue;
 let key = m[1].toLowerCase();
 if (KEY_ALIASES[key]) key = KEY_ALIASES[key];
-if (["steps", "sleep", "water", "weight"].indexOf(key) === -1) continue;
+if (["steps", "sleep", "water", "weight", "auto"].indexOf(key) === -1) continue;
 const val = m[2].trim();
 if (!val) continue;
 out[key] = val;
