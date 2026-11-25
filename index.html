@@ -684,6 +684,10 @@ font: inherit;
 <img id="photo-preview" class="photo-preview" alt="食物預覽" />
 <div id="photo-ai-hint" style="font-size:12px; color:var(--primary); margin-top:6px; font-weight:600;"></div>
 </div>
+<div id="ai-box" style="display:none; margin-bottom:12px;">
+<button class="btn-secondary" onclick="estimateWithAI()">🤖 用 AI 估算營養</button>
+<div id="ai-status" class="manual-sync-hint"></div>
+</div>
 <div class="form-group">
 <label>食物名稱（打關鍵字會出建議，撳一下就自動填好營養素）</label>
 <input type="text" id="f-name" placeholder="例如：叉燒飯、雞胸、奶茶" oninput="onFoodNameInput()" />
@@ -808,6 +812,32 @@ font: inherit;
 </div>
 <button class="btn-primary" onclick="saveProfile()">更新檔案並自動重算目標</button>
 <div style="margin-top:18px; padding-top:14px; border-top:1px dashed var(--border);">
+<div style="font-size:13px; font-weight:700;">🤖 AI 影相估算（Google Gemini）</div>
+<div class="manual-sync-hint" style="margin-top:4px;">去 <strong>aistudio.google.com</strong> 免費拿 API key，貼落下面。Key 只存喺你部機；影相估算時相片會上傳到 Google。</div>
+<div class="form-group" style="margin-top:8px;">
+<label>Gemini API Key</label>
+<input type="password" id="ai-key" placeholder="AIza..." autocomplete="off" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px; font-size:14px;" />
+</div>
+<div class="row-2">
+<div class="form-group">
+<label>模型</label>
+<select id="ai-model">
+<option value="gemini-2.5-flash">gemini-2.5-flash（推薦）</option>
+<option value="gemini-2.0-flash">gemini-2.0-flash</option>
+<option value="gemini-1.5-flash">gemini-1.5-flash</option>
+</select>
+</div>
+<div class="form-group">
+<label>影相之後</label>
+<select id="ai-auto">
+<option value="1">自動估算</option>
+<option value="0">手動撳掣</option>
+</select>
+</div>
+</div>
+<button class="btn-secondary" onclick="saveAISettings()">儲存 AI 設定</button>
+</div>
+<div style="margin-top:18px; padding-top:14px; border-top:1px dashed var(--border);">
 <div style="display:flex; align-items:baseline; justify-content:space-between; gap:8px;">
 <div style="font-size:13px; font-weight:700;">💾 資料備份</div>
 <span style="font-size:11px; color:var(--muted);">換電話／清 cache 前記得匯出</span>
@@ -825,7 +855,7 @@ font: inherit;
 </div>
 </div>
 </div>
-<div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">網頁版本 v2026-11-26.4</div>
+<div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">網頁版本 v2026-11-27.1</div>
 </div>
 </div>
 <!-- 安裝與同步說明彈窗 -->
@@ -1311,6 +1341,12 @@ document.getElementById("photo-ai-hint").textContent = "✅ 已載入相片！�
 if (!document.getElementById("f-name").value) {
 document.getElementById("f-name").value = file.name.replace(/\.[^/.]+$/, "") || "拍照記錄餐點";
 }
+const aiBox = document.getElementById("ai-box");
+if (aiBox) aiBox.style.display = "block";
+const aiStat = document.getElementById("ai-status");
+if (aiStat) aiStat.textContent = "";
+const aiConf = getAISettings();
+if (aiConf.key && aiConf.auto) estimateWithAI();
 };
 img.src = ev.target.result;
 };
@@ -1394,6 +1430,96 @@ document.getElementById("f-fat").value = f.fat;
 document.getElementById("f-gout").value = f.gout;
 const box = document.getElementById("food-suggest");
 if (box) box.innerHTML = "";
+}
+function getAISettings() {
+try {
+const raw = localStorage.getItem("nutri_ai_v1");
+const s = raw ? JSON.parse(raw) : {};
+return { key: String(s.key || ""), model: String(s.model || "gemini-2.5-flash"), auto: s.auto === undefined ? true : !!s.auto };
+} catch (e) {
+return { key: "", model: "gemini-2.5-flash", auto: true };
+}
+}
+function saveAISettings() {
+const keyEl = document.getElementById("ai-key");
+const modelEl = document.getElementById("ai-model");
+const autoEl = document.getElementById("ai-auto");
+const key = keyEl ? String(keyEl.value || "").trim() : "";
+const model = modelEl ? String(modelEl.value || "gemini-2.5-flash") : "gemini-2.5-flash";
+const auto = autoEl ? String(autoEl.value || "1") === "1" : true;
+try { localStorage.setItem("nutri_ai_v1", JSON.stringify({ key: key, model: model, auto: auto })); } catch (e) {}
+alert(key ? "✅ 已儲存 AI 設定（模型：" + model + "）" : "已清除 API key，AI 估算停用");
+}
+function extractJsonObject(text) {
+const s = String(text || "");
+const a = s.indexOf("{");
+const b = s.lastIndexOf("}");
+if (a < 0 || b <= a) return null;
+try { return JSON.parse(s.slice(a, b + 1)); } catch (e) { return null; }
+}
+function applyAIResult(obj) {
+if (!obj) return false;
+const nameEl = document.getElementById("f-name");
+if (nameEl && obj.name) nameEl.value = String(obj.name);
+const cal = syncNumber(obj.calories);
+if (cal !== null) document.getElementById("f-cal").value = Math.max(0, Math.round(cal));
+const pro = syncNumber(obj.protein);
+if (pro !== null) document.getElementById("f-protein").value = Math.max(0, Math.round(pro));
+const carb = syncNumber(obj.carbs);
+if (carb !== null) document.getElementById("f-carbs").value = Math.max(0, Math.round(carb));
+const fat = syncNumber(obj.fat);
+if (fat !== null) document.getElementById("f-fat").value = Math.max(0, Math.round(fat));
+const g = String(obj.gout || "").toLowerCase();
+if (g === "low" || g === "mid" || g === "high") document.getElementById("f-gout").value = g;
+const box = document.getElementById("food-suggest");
+if (box) box.innerHTML = "";
+return true;
+}
+async function estimateWithAI() {
+const status = document.getElementById("ai-status");
+const s = getAISettings();
+if (!s.key) {
+if (status) status.textContent = "⚠️ 未設定 API key：去 👤 檔案目標 → 🤖 AI 影相估算 貼上 key";
+return;
+}
+if (!currentPhotoData) {
+if (status) status.textContent = "⚠️ 請先影相或揀一張相片";
+return;
+}
+if (status) status.textContent = "⏳ 分析中…（約 3-8 秒）";
+try {
+const base64 = String(currentPhotoData).split(",")[1] || "";
+const prompt = "你係註冊營養師。分析呢張食物相片，估算實際可食用份量同營養素。只回傳一個 JSON 物件，唔要任何解釋文字：\n" +
+'{"name":"食物名稱（含份量，例如：叉燒飯 1 碟）","portion":"估計份量（例如：約 350g）","calories":整數,"protein":整數,"carbs":整數,"fat":整數,"gout":"low 或 mid 或 high","confidence":0到1,"note":"一句話說明估算依據"}';
+const url = "https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(s.model) + ":generateContent?key=" + encodeURIComponent(s.key);
+const res = await fetch(url, {
+method: "POST",
+headers: { "Content-Type": "application/json" },
+body: JSON.stringify({
+contents: [{ parts: [{ text: prompt }, { inline_data: { mime_type: "image/jpeg", data: base64 } }] }],
+generationConfig: { temperature: 0.2, responseMimeType: "application/json" }
+})
+});
+if (!res.ok) {
+let detail = "";
+try { detail = (await res.text()).slice(0, 140); } catch (e) {}
+throw new Error("HTTP " + res.status + (detail ? "：" + detail : ""));
+}
+const data = await res.json();
+const parts = (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) || [];
+const reply = parts.map(function (p) { return p.text || ""; }).join("");
+const obj = extractJsonObject(reply);
+if (!obj) throw new Error("AI 回覆唔係有效 JSON");
+applyAIResult(obj);
+const conf = syncNumber(obj.confidence);
+if (status) {
+status.textContent = "✅ AI 估算完成" + (obj.portion ? "（" + obj.portion + "）" : "") +
+(conf !== null ? " · 信心 " + Math.round(conf * 100) + "%" : "") +
+"　請核對份量再儲存";
+}
+} catch (e) {
+if (status) status.textContent = "❌ 估算失敗：" + (e && e.message ? e.message : String(e));
+}
 }
 function saveNewFood() {
 const name = document.getElementById("f-name").value.trim();
@@ -1539,6 +1665,10 @@ alert(`✅ 已匯入 ${days} 日紀錄（${foods} 筆飲食）${hasProfile ? "�
 }
 function openModal(id) {
 if (id === "add-modal") {
+const aiBox = document.getElementById("ai-box");
+if (aiBox) aiBox.style.display = currentPhotoData ? "block" : "none";
+const aiStat = document.getElementById("ai-status");
+if (aiStat) aiStat.textContent = "";
 const t = document.getElementById("f-time");
 if (t && !t.value) {
 const now = new Date();
@@ -1559,6 +1689,13 @@ document.getElementById("p-sleep-goal").value = p.sleepGoal;
 document.getElementById("p-activity").value = String(p.activity);
 const t = calcTargets(p);
 document.getElementById("bmr-preview").textContent = `依目前身體數據推算：BMR 約 ${t.bmr} kcal ｜ 每日 TDEE 約 ${t.tdee} kcal ｜ 減脂建議攝取 ${t.calTarget} kcal ｜ 每日飲水目標 ${t.waterTarget} mL`;
+const ai = getAISettings();
+const keyEl = document.getElementById("ai-key");
+if (keyEl) keyEl.value = ai.key;
+const modelEl = document.getElementById("ai-model");
+if (modelEl) modelEl.value = ai.model;
+const autoEl = document.getElementById("ai-auto");
+if (autoEl) autoEl.value = ai.auto ? "1" : "0";
 }
 document.getElementById(id).classList.add("open");
 }
