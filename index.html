@@ -469,6 +469,23 @@ line-height: 1.5;
 resize: vertical;
 }
 .manual-sync-box .btn-primary { margin-top: 8px; }
+.suggest-list {
+display: flex;
+flex-direction: column;
+gap: 6px;
+margin-top: 8px;
+}
+.suggest-item {
+text-align: left;
+background: #f8fafc;
+border: 1px solid var(--border);
+border-radius: 10px;
+padding: 8px 10px;
+cursor: pointer;
+font: inherit;
+}
+.suggest-item strong { display: block; font-size: 13px; color: var(--text); }
+.suggest-item span { font-size: 11px; color: var(--muted); }
 </style>
 </head>
 <body>
@@ -661,18 +678,19 @@ resize: vertical;
 </div>
 <div class="photo-box">
 <label for="food-photo-input" style="cursor:pointer; display:block; font-weight:700; color:var(--primary-dark); font-size:14px;">
-📷 拍照 / 上傳食物或營養標籤相片
+📷 影相 / 由相片圖庫揀
 </label>
-<div style="font-size:11px; color:var(--muted); margin-top:2px;">支援直接拍攝餐點或包裝營養表，並儲存相片紀錄</div>
-<input type="file" id="food-photo-input" accept="image/*" capture="environment" style="display:none;" onchange="handlePhotoUpload(event)" />
+<div style="font-size:11px; color:var(--muted); margin-top:2px;">可以即場拍，或者揀手機入面已經影好嘅餐點／營養標籤相片</div>
+<input type="file" id="food-photo-input" accept="image/*" style="display:none;" onchange="handlePhotoUpload(event)" />
 <img id="photo-preview" class="photo-preview" alt="食物預覽" />
 <div id="photo-ai-hint" style="font-size:12px; color:var(--primary); margin-top:6px; font-weight:600;"></div>
 </div>
 <div class="form-group">
-<label>食物名稱（可輸入關鍵字自動評估痛風風險）</label>
-<input type="text" id="f-name" placeholder="例如：去皮雞胸飯、三文魚、牛排、無糖豆漿" oninput="autoDetectGout()" />
+<label>食物名稱（打關鍵字會出建議，撳一下就自動填好營養素）</label>
+<input type="text" id="f-name" placeholder="例如：叉燒飯、雞胸、奶茶" oninput="onFoodNameInput()" />
+<div id="food-suggest" class="suggest-list"></div>
 </div>
-<div class="row-2">
+<div class="row-3">
 <div class="form-group">
 <label>餐別</label>
 <select id="f-meal">
@@ -684,7 +702,11 @@ resize: vertical;
 </select>
 </div>
 <div class="form-group">
-<label>食用比例（外食分食計算）</label>
+<label>食飯時間</label>
+<input type="time" id="f-time" />
+</div>
+<div class="form-group">
+<label>食用比例</label>
 <select id="f-ratio">
 <option value="1">一人獨享 (100%)</option>
 <option value="0.5">與朋友平分 (50%)</option>
@@ -802,7 +824,7 @@ resize: vertical;
 </div>
 </div>
 </div>
-<div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">網頁版本 v2026-11-24.1</div>
+<div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">網頁版本 v2026-11-25.2</div>
 </div>
 </div>
 <!-- 安裝與同步說明彈窗 -->
@@ -1044,7 +1066,9 @@ if (!m) continue;
 let key = m[1].toLowerCase();
 if (KEY_ALIASES[key]) key = KEY_ALIASES[key];
 if (["steps", "sleep", "water", "weight"].indexOf(key) === -1) continue;
-out[key] = m[2].trim();
+const val = m[2].trim();
+if (!val) continue;
+out[key] = val;
 }
 if (Object.keys(out).length) return { payload: out };
 }
@@ -1104,6 +1128,7 @@ if (!pendingSyncData) return;
 const ok = applySyncPayload(pendingSyncData);
 pendingSyncData = null;
 if (ok) alert("✅ 已成功同步 Apple 健康數據！");
+else alert("⚠️ 收到嘅數據冇任何有效數值（步數／睡眠／飲水／體重都係空），所以冇嘢可以更新。請檢查捷徑「文字」入面 steps= 後面有冇真正插入變數。");
 }
 function applyManualSync() {
 const box = document.getElementById("manual-sync-input");
@@ -1257,6 +1282,85 @@ img.src = ev.target.result;
 };
 reader.readAsDataURL(file);
 }
+const FOOD_DB = [
+{ name: "白飯（1 碗 200g）", alias: ["飯", "白飯"], cal: 260, protein: 5, carbs: 57, fat: 0.6, gout: "low" },
+{ name: "糙米飯／紅米飯（1 碗）", alias: ["糙米", "紅米"], cal: 248, protein: 5.5, carbs: 52, fat: 1.8, gout: "low" },
+{ name: "叉燒飯（1 碟）", alias: ["叉燒"], cal: 780, protein: 32, carbs: 95, fat: 28, gout: "mid" },
+{ name: "燒鵝／燒鴨飯（1 碟）", alias: ["燒鵝", "燒鴨"], cal: 900, protein: 35, carbs: 90, fat: 45, gout: "high" },
+{ name: "雲吞麵（1 碗）", alias: ["雲吞"], cal: 420, protein: 22, carbs: 55, fat: 10, gout: "mid" },
+{ name: "牛腩麵（1 碗）", alias: ["牛腩"], cal: 620, protein: 30, carbs: 60, fat: 28, gout: "high" },
+{ name: "艇仔粥（1 碗）", alias: ["粥"], cal: 260, protein: 12, carbs: 38, fat: 6, gout: "mid" },
+{ name: "白粥（1 碗）", alias: ["白粥"], cal: 130, protein: 3, carbs: 28, fat: 0.3, gout: "low" },
+{ name: "蒸魚（100g）", alias: ["魚", "蒸魚"], cal: 120, protein: 20, carbs: 0, fat: 4, gout: "mid" },
+{ name: "三文魚（100g）", alias: ["三文魚", "鮭魚"], cal: 208, protein: 20, carbs: 0, fat: 13, gout: "mid" },
+{ name: "雞胸肉（100g 去皮）", alias: ["雞胸", "雞肉"], cal: 165, protein: 31, carbs: 0, fat: 3.6, gout: "low" },
+{ name: "雞髀（1 隻 去皮）", alias: ["雞髀", "雞腿"], cal: 220, protein: 26, carbs: 0, fat: 12, gout: "low" },
+{ name: "烚蛋（1 隻）", alias: ["蛋", "烚蛋"], cal: 78, protein: 6.3, carbs: 0.6, fat: 5.3, gout: "low" },
+{ name: "煎蛋（1 隻）", alias: ["煎蛋"], cal: 90, protein: 6.3, carbs: 0.4, fat: 7, gout: "low" },
+{ name: "硬豆腐（100g）", alias: ["豆腐"], cal: 76, protein: 8, carbs: 2, fat: 4, gout: "low" },
+{ name: "豆卜（3 件）", alias: ["豆卜"], cal: 120, protein: 8, carbs: 4, fat: 8, gout: "mid" },
+{ name: "無糖豆漿（300mL）", alias: ["豆漿"], cal: 120, protein: 10, carbs: 6, fat: 6, gout: "low" },
+{ name: "牛奶（250mL）", alias: ["牛奶"], cal: 155, protein: 8, carbs: 12, fat: 8, gout: "low" },
+{ name: "無糖乳酪（150g）", alias: ["乳酪", "yogurt"], cal: 90, protein: 9, carbs: 6, fat: 3, gout: "low" },
+{ name: "炒青菜（1 碟 走油）", alias: ["菜", "青菜"], cal: 90, protein: 3, carbs: 8, fat: 5, gout: "low" },
+{ name: "灼菜（1 碟）", alias: ["灼菜"], cal: 45, protein: 2.5, carbs: 6, fat: 0.5, gout: "low" },
+{ name: "蒸水蛋（1 碗）", alias: ["蒸蛋", "水蛋"], cal: 130, protein: 12, carbs: 3, fat: 8, gout: "low" },
+{ name: "老火湯（1 碗）", alias: ["湯", "老火湯"], cal: 150, protein: 8, carbs: 8, fat: 8, gout: "high" },
+{ name: "可樂（330mL）", alias: ["可樂"], cal: 139, protein: 0, carbs: 35, fat: 0, gout: "mid" },
+{ name: "奶茶（茶走）", alias: ["奶茶"], cal: 150, protein: 4, carbs: 18, fat: 7, gout: "mid" },
+{ name: "齋啡（1 杯）", alias: ["咖啡", "齋啡"], cal: 5, protein: 0, carbs: 1, fat: 0, gout: "low" },
+{ name: "拿鐵（1 杯）", alias: ["latte", "拿鐵"], cal: 160, protein: 8, carbs: 13, fat: 8, gout: "low" },
+{ name: "啤酒（330mL）", alias: ["啤酒", "beer"], cal: 140, protein: 1, carbs: 11, fat: 0, gout: "high" },
+{ name: "漢堡包（1 個）", alias: ["漢堡"], cal: 250, protein: 12, carbs: 31, fat: 9, gout: "mid" },
+{ name: "薯條（中）", alias: ["薯條"], cal: 340, protein: 4, carbs: 44, fat: 16, gout: "mid" },
+{ name: "炸雞（1 件）", alias: ["炸雞"], cal: 320, protein: 20, carbs: 12, fat: 21, gout: "mid" },
+{ name: "火腿蛋三文治", alias: ["三文治", "三明治"], cal: 300, protein: 15, carbs: 30, fat: 13, gout: "mid" },
+{ name: "沙律（走醬）", alias: ["沙律", "沙拉"], cal: 80, protein: 3, carbs: 8, fat: 4, gout: "low" },
+{ name: "番茄意粉（1 碟）", alias: ["意粉", "意大利麵"], cal: 380, protein: 12, carbs: 65, fat: 8, gout: "low" },
+{ name: "炒飯（1 碟）", alias: ["炒飯"], cal: 620, protein: 15, carbs: 88, fat: 22, gout: "mid" },
+{ name: "海南雞飯", alias: ["海南雞"], cal: 750, protein: 35, carbs: 80, fat: 32, gout: "mid" },
+{ name: "車仔麵（3 餸）", alias: ["車仔麵"], cal: 700, protein: 28, carbs: 80, fat: 28, gout: "high" },
+{ name: "壽司（8 件）", alias: ["壽司"], cal: 480, protein: 22, carbs: 70, fat: 12, gout: "mid" },
+{ name: "火鍋（1 人份）", alias: ["火鍋", "打邊爐"], cal: 900, protein: 45, carbs: 40, fat: 60, gout: "high" },
+{ name: "蘋果（1 個）", alias: ["蘋果"], cal: 72, protein: 0.4, carbs: 19, fat: 0.2, gout: "low" },
+{ name: "香蕉（1 隻）", alias: ["香蕉"], cal: 105, protein: 1.3, carbs: 27, fat: 0.4, gout: "low" },
+{ name: "芒果（1 個）", alias: ["芒果"], cal: 200, protein: 1.5, carbs: 50, fat: 0.8, gout: "mid" },
+{ name: "雪糕（1 球）", alias: ["雪糕", "冰淇淋"], cal: 140, protein: 2.5, carbs: 16, fat: 7, gout: "mid" },
+{ name: "全麥多士（1 片）", alias: ["多士", "麵包"], cal: 80, protein: 3, carbs: 14, fat: 1, gout: "low" },
+{ name: "花生醬多士", alias: ["花生醬"], cal: 220, protein: 6, carbs: 24, fat: 11, gout: "mid" },
+{ name: "燕麥（40g 乾）", alias: ["燕麥", "oats"], cal: 150, protein: 5, carbs: 27, fat: 3, gout: "low" }
+];
+function onFoodNameInput() {
+autoDetectGout();
+renderFoodSuggestions();
+}
+function renderFoodSuggestions() {
+const box = document.getElementById("food-suggest");
+if (!box) return;
+const q = String(document.getElementById("f-name").value || "").trim();
+if (!q) { box.innerHTML = ""; return; }
+const hits = [];
+for (let i = 0; i < FOOD_DB.length && hits.length < 6; i++) {
+const f = FOOD_DB[i];
+if (f.name.indexOf(q) >= 0 || (f.alias || []).some(function (a) { return a.indexOf(q) >= 0; })) hits.push(i);
+}
+box.innerHTML = hits.map(function (i) {
+const f = FOOD_DB[i];
+return `<button type="button" class="suggest-item" onclick="applyFoodSuggestion(${i})"><strong>${f.name}</strong><span>${f.cal} kcal · 蛋白 ${f.protein}g · 碳水 ${f.carbs}g · 脂肪 ${f.fat}g</span></button>`;
+}).join("");
+}
+function applyFoodSuggestion(idx) {
+const f = FOOD_DB[idx];
+if (!f) return;
+document.getElementById("f-name").value = f.name;
+document.getElementById("f-cal").value = f.cal;
+document.getElementById("f-protein").value = f.protein;
+document.getElementById("f-carbs").value = f.carbs;
+document.getElementById("f-fat").value = f.fat;
+document.getElementById("f-gout").value = f.gout;
+const box = document.getElementById("food-suggest");
+if (box) box.innerHTML = "";
+}
 function saveNewFood() {
 const name = document.getElementById("f-name").value.trim();
 const calRaw = Number(document.getElementById("f-cal").value);
@@ -1266,10 +1370,12 @@ return;
 }
 const ratio = Number(document.getElementById("f-ratio").value);
 const ratioLabel = ratio === 1 ? "" :  `(${Math.round(ratio * 100)}%份量)`;
+const timeEl = document.getElementById("f-time");
 const item = {
 id: Date.now(),
 name: name + ratioLabel,
 meal: document.getElementById("f-meal").value,
+time: timeEl ? String(timeEl.value || "") : "",
 cal: Math.round(calRaw * ratio),
 protein: Math.round((Number(document.getElementById("f-protein").value) || 0) * ratio),
 carbs: Math.round((Number(document.getElementById("f-carbs").value) || 0) * ratio),
@@ -1398,6 +1504,15 @@ renderAll();
 alert(`✅ 已匯入 ${days} 日紀錄（${foods} 筆飲食）${hasProfile ? "＋個人設定" : ""}。`);
 }
 function openModal(id) {
+if (id === "add-modal") {
+const t = document.getElementById("f-time");
+if (t && !t.value) {
+const now = new Date();
+t.value = String(now.getHours()).padStart(2, "0") + ":" + String(now.getMinutes()).padStart(2, "0");
+}
+const box = document.getElementById("food-suggest");
+if (box) box.innerHTML = "";
+}
 if (id === "profile-modal") {
 const p = getProfile();
 document.getElementById("p-gender").value = p.gender;
@@ -1559,7 +1674,7 @@ listEl.innerHTML = `<div style="text-align:center; color:var(--muted); padding:1
 listEl.innerHTML = data.foods.map(f => {
 const gLabel = f.gout === "high" ? `<span class="badge badge-high">高痛風風險</span>` : (f.gout === "mid" ? `<span class="badge badge-mid">中風險</span>` : `<span class="badge badge-low">低風險</span>`);
 const thumb = f.photo ? `<img src="${f.photo}" class="food-thumb" alt="餐點相片" />` : "";
-return `<div class="food-item"> ${thumb} <div style="flex:1;"> <div class="food-name">[${f.meal}] ${f.name}</div> <div class="food-meta">${f.cal} kcal · 蛋白 ${f.protein}g · 碳水 ${f.carbs}g · 脂肪 ${f.fat}g ${f.caffeine ?`· 咖啡因 ${f.caffeine}mg`: ""}</div> <div style="margin-top:4px;">${gLabel}</div> </div> <button class="del-btn" onclick="deleteFood(${f.id})">刪除</button> </div>`;
+return `<div class="food-item"> ${thumb} <div style="flex:1;"> <div class="food-name">[${f.meal}${f.time ? " " + f.time : ""}] ${f.name}</div> <div class="food-meta">${f.cal} kcal · 蛋白 ${f.protein}g · 碳水 ${f.carbs}g · 脂肪 ${f.fat}g ${f.caffeine ?`· 咖啡因 ${f.caffeine}mg`: ""}</div> <div style="margin-top:4px;">${gLabel}</div> </div> <button class="del-btn" onclick="deleteFood(${f.id})">刪除</button> </div>`;
 }).join("");
 }
 }
