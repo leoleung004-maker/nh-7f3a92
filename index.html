@@ -889,7 +889,7 @@ font: inherit;
 </div>
 </div>
 </div>
-<div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">網頁版本 v2026-12-01.1</div>
+<div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">網頁版本 v2026-12-02.1</div>
 </div>
 </div>
 <!-- 安裝與同步說明彈窗 -->
@@ -1430,7 +1430,9 @@ prev.src = currentPhotoData;
 prev.style.display = "block";
 document.getElementById("photo-ai-hint").textContent = "✅ 已載入相片！請填寫或微調下方食物名稱與熱量後儲存。";
 if (!document.getElementById("f-name").value) {
-document.getElementById("f-name").value = file.name.replace(/\.[^/.]+$/, "") || "拍照記錄餐點";
+const baseName = String(file.name || "").replace(/\.[^/.]+$/, "").trim();
+const genericName = !baseName || /^(image|img|photo|screenshot|pxl_|img_|image_)/i.test(baseName);
+if (!genericName) document.getElementById("f-name").value = baseName;
 }
 const aiBox = document.getElementById("ai-box");
 if (aiBox) aiBox.style.display = "block";
@@ -1621,23 +1623,18 @@ if (box) box.innerHTML = "";
 updateRatioPreview();
 return true;
 }
-async function estimateWithAI() {
-const status = document.getElementById("ai-status");
-const s = getAISettings();
-if (!s.key) {
-if (status) status.textContent = "⚠️ 未設定 API key：去 👤 檔案目標 → 🤖 AI 影相估算 貼上 key";
-return;
+function aiCandidateModels(primary) {
+const list = [];
+[primary, "gemini-flash-latest", "gemini-flash-lite-latest", "gemini-pro-latest"].forEach(function (m) {
+const name = String(m || "").trim();
+if (name && list.indexOf(name) === -1) list.push(name);
+});
+return list;
 }
-if (!currentPhotoData) {
-if (status) status.textContent = "⚠️ 請先影相或揀一張相片";
-return;
-}
-if (status) status.textContent = "⏳ 分析中…（約 3-8 秒）";
-try {
-const base64 = String(currentPhotoData).split(",")[1] || "";
+async function callGeminiOnce(model, key, base64) {
 const prompt = "你係註冊營養師。分析呢張食物相片，估算實際可食用份量同營養素。只回傳一個 JSON 物件，唔要任何解釋文字：\n" +
 '{"name":"食物名稱（含份量，例如：叉燒飯 1 碟）","portion":"估計份量（例如：約 350g）","calories":整數,"protein":整數,"carbs":整數,"fat":整數,"gout":"low 或 mid 或 high","goutReason":"一句話講痛風風險原因（例如：有雞皮／濃芡／海鮮／內臟／高果糖飲品；低風險寫：無高普林食材）","confidence":0到1,"note":"一句話說明估算依據"}';
-const url = "https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(s.model) + ":generateContent?key=" + encodeURIComponent(s.key);
+const url = "https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(model) + ":generateContent?key=" + encodeURIComponent(key);
 const res = await fetch(url, {
 method: "POST",
 headers: { "Content-Type": "application/json" },
@@ -1649,26 +1646,58 @@ generationConfig: { temperature: 0.2, responseMimeType: "application/json" }
 if (!res.ok) {
 let detail = "";
 try { detail = (await res.text()).slice(0, 140); } catch (e) {}
-throw new Error("HTTP " + res.status + (detail ? "：" + detail : ""));
+const err = new Error("HTTP " + res.status + (detail ? "：" + detail : ""));
+err.status = res.status;
+throw err;
 }
 const data = await res.json();
 const parts = (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) || [];
 const reply = parts.map(function (p) { return p.text || ""; }).join("");
 const obj = extractJsonObject(reply);
 if (!obj) throw new Error("AI 回覆唔係有效 JSON");
+return obj;
+}
+async function estimateWithAI() {
+const status = document.getElementById("ai-status");
+const s = getAISettings();
+if (!s.key) {
+if (status) status.textContent = "⚠️ 未設定 API key：去 👤 檔案目標 → 🤖 AI 影相估算 貼上 key";
+return;
+}
+if (!currentPhotoData) {
+if (status) status.textContent = "⚠️ 請先影相或揀一張相片";
+return;
+}
+const base64 = String(currentPhotoData).split(",")[1] || "";
+const models = aiCandidateModels(s.model);
+let lastErr = null;
+let usedModel = "";
+for (let i = 0; i < models.length; i++) {
+const model = models[i];
+if (status) status.textContent = (i === 0 ? "⏳ 分析中…" : "⏳ " + models[0] + " 繁忙，改用 " + model + " 重試…") + "（" + model + "）";
+try {
+const obj = await callGeminiOnce(model, s.key, base64);
+usedModel = model;
 applyAIResult(obj);
 const conf = syncNumber(obj.confidence);
 if (status) {
 let line = "✅ AI 估算完成" + (obj.portion ? "（" + obj.portion + "）" : "") +
 (conf !== null ? " · 信心 " + Math.round(conf * 100) + "%" : "");
 if (obj.goutReason) line += " ｜ 🩺 " + obj.goutReason;
+if (usedModel && usedModel !== s.model) line += "　（改用 " + usedModel + "）";
 line += "　請核對份量再儲存";
 status.textContent = line;
 }
+return;
 } catch (e) {
-const msg = (e && e.message ? e.message : String(e));
-if (status) status.textContent = "❌ 估算失敗：" + msg + (/404|not found|not supported|invalid/i.test(msg) ? "（模型可能已停用或唔支援圖片，去 👤 檔案目標 撳「🔄 用 API key 讀取」揀返新模型）" : "");
+lastErr = e;
 }
+}
+const msg = (lastErr && lastErr.message ? lastErr.message : String(lastErr));
+const busy = /5\d\d|overload|high demand|unavailable|429/i.test(msg);
+if (status) status.textContent = "❌ 估算失敗：" + msg + (busy
+? "（Gemini 暫時繁忙，等 1–2 分鐘再撳「🤖 用 AI 估算營養」就得）"
+: (/404|not found|not supported|invalid/i.test(msg) ? "（模型可能已停用或唔支援圖片，去 👤 檔案目標 撳「🔄 用 API key 讀取」揀返新模型）" : ""));
 }
 function updateRatioPreview() {
 const el = document.getElementById("ratio-preview");
