@@ -832,14 +832,19 @@ font: inherit;
 <label>Gemini API Key</label>
 <input type="password" id="ai-key" placeholder="AIza..." autocomplete="off" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px; font-size:14px;" />
 </div>
+<div class="form-group">
+<label>模型（用別名就會自動跟最新版）</label>
+<input id="ai-model" list="ai-model-options" placeholder="gemini-flash-latest" autocomplete="off" autocapitalize="off" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px; font-size:14px; font-family:ui-monospace, Menlo, monospace;" />
+<datalist id="ai-model-options">
+<option value="gemini-flash-latest"></option>
+<option value="gemini-flash-lite-latest"></option>
+<option value="gemini-pro-latest"></option>
+</datalist>
+</div>
 <div class="row-2">
 <div class="form-group">
-<label>模型</label>
-<select id="ai-model">
-<option value="gemini-2.5-flash">gemini-2.5-flash（推薦）</option>
-<option value="gemini-2.0-flash">gemini-2.0-flash</option>
-<option value="gemini-1.5-flash">gemini-1.5-flash</option>
-</select>
+<label>不知道用邊個？</label>
+<button class="btn-secondary" onclick="loadAIModels()">🔄 用 API key 讀取</button>
 </div>
 <div class="form-group">
 <label>影相之後</label>
@@ -849,6 +854,7 @@ font: inherit;
 </select>
 </div>
 </div>
+<div id="ai-model-status" class="manual-sync-hint"></div>
 <button class="btn-secondary" onclick="saveAISettings()">儲存 AI 設定</button>
 </div>
 <div style="margin-top:18px; padding-top:14px; border-top:1px dashed var(--border);">
@@ -869,7 +875,7 @@ font: inherit;
 </div>
 </div>
 </div>
-<div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">網頁版本 v2026-11-28.1</div>
+<div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">網頁版本 v2026-11-29.1</div>
 </div>
 </div>
 <!-- 安裝與同步說明彈窗 -->
@@ -1445,13 +1451,58 @@ document.getElementById("f-gout").value = f.gout;
 const box = document.getElementById("food-suggest");
 if (box) box.innerHTML = "";
 }
+const AI_DEFAULT_MODEL = "gemini-flash-latest";
+const AI_RETIRED_MODELS = ["gemini-1.0-pro", "gemini-1.5-flash", "gemini-1.5-flash-8b", "gemini-1.5-pro", "gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.5-flash-lite"];
 function getAISettings() {
 try {
 const raw = localStorage.getItem("nutri_ai_v1");
 const s = raw ? JSON.parse(raw) : {};
-return { key: String(s.key || ""), model: String(s.model || "gemini-2.5-flash"), auto: s.auto === undefined ? true : !!s.auto };
+let model = String(s.model || AI_DEFAULT_MODEL);
+if (AI_RETIRED_MODELS.indexOf(model) >= 0) model = AI_DEFAULT_MODEL;
+return { key: String(s.key || ""), model: model, auto: s.auto === undefined ? true : !!s.auto };
 } catch (e) {
-return { key: "", model: "gemini-2.5-flash", auto: true };
+return { key: "", model: AI_DEFAULT_MODEL, auto: true };
+}
+}
+function pickBestModel(names) {
+const score = function (n) {
+if (n === "gemini-flash-latest") return 1000;
+const m = String(n).match(/gemini-(\d+(?:\.\d+)?)/i);
+const v = m ? parseFloat(m[1]) : 0;
+let s = v * 10;
+if (/flash/i.test(n)) s += 5;
+if (/lite/i.test(n)) s -= 2;
+if (/preview|exp\b|thinking|tts|live|image/i.test(n)) s -= 1;
+return s;
+};
+return names.slice().sort(function (a, b) { return score(b) - score(a); })[0] || "";
+}
+async function loadAIModels() {
+const status = document.getElementById("ai-model-status");
+const keyEl = document.getElementById("ai-key");
+const key = keyEl ? String(keyEl.value || "").trim() : "";
+if (!key) { if (status) status.textContent = "⚠️ 請先貼上 API key"; return; }
+if (status) status.textContent = "⏳ 讀取中…";
+try {
+const res = await fetch("https://generativelanguage.googleapis.com/v1beta/models?pageSize=200&key=" + encodeURIComponent(key));
+if (!res.ok) throw new Error("HTTP " + res.status);
+const data = await res.json();
+const names = (data.models || []).filter(function (m) {
+return (m.supportedGenerationMethods || []).indexOf("generateContent") >= 0;
+}).map(function (m) {
+return String(m.name || "").replace(/^models\//, "");
+}).filter(function (n) {
+return /^gemini/i.test(n) && !/embedding|aqa|tts|live|image|veo|imagen/i.test(n);
+});
+if (!names.length) throw new Error("呢個 key 搵唔到可用嘅 Gemini 模型");
+const list = document.getElementById("ai-model-options");
+if (list) list.innerHTML = names.map(function (n) { return '<option value="' + n + '"></option>'; }).join("");
+const best = pickBestModel(names);
+const input = document.getElementById("ai-model");
+if (input && best) input.value = best;
+if (status) status.textContent = "✅ 搵到 " + names.length + " 個模型，建議用 " + best + "（記得撳「儲存 AI 設定」）";
+} catch (e) {
+if (status) status.textContent = "❌ 讀取失敗：" + (e && e.message ? e.message : String(e));
 }
 }
 function saveAISettings() {
@@ -1459,7 +1510,7 @@ const keyEl = document.getElementById("ai-key");
 const modelEl = document.getElementById("ai-model");
 const autoEl = document.getElementById("ai-auto");
 const key = keyEl ? String(keyEl.value || "").trim() : "";
-const model = modelEl ? String(modelEl.value || "gemini-2.5-flash") : "gemini-2.5-flash";
+const model = modelEl ? (String(modelEl.value || "").trim() || AI_DEFAULT_MODEL) : AI_DEFAULT_MODEL;
 const auto = autoEl ? String(autoEl.value || "1") === "1" : true;
 try { localStorage.setItem("nutri_ai_v1", JSON.stringify({ key: key, model: model, auto: auto })); } catch (e) {}
 alert(key ? "✅ 已儲存 AI 設定（模型：" + model + "）" : "已清除 API key，AI 估算停用");
@@ -1532,7 +1583,8 @@ status.textContent = "✅ AI 估算完成" + (obj.portion ? "（" + obj.portion 
 "　請核對份量再儲存";
 }
 } catch (e) {
-if (status) status.textContent = "❌ 估算失敗：" + (e && e.message ? e.message : String(e));
+const msg = (e && e.message ? e.message : String(e));
+if (status) status.textContent = "❌ 估算失敗：" + msg + (/404|not found|not supported|invalid/i.test(msg) ? "（模型可能已停用或唔支援圖片，去 👤 檔案目標 撳「🔄 用 API key 讀取」揀返新模型）" : "");
 }
 }
 function saveNewFood() {
