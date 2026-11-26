@@ -494,7 +494,7 @@ font: inherit;
 <div class="header-top">
 <div>
 <h1 class="header-title">🥗 減脂與痛風營養師</h1>
-<div class="header-sub" id="profile-summary">男 · 28歲 · 186cm · 106kg → 目標 80kg</div>
+<div class="header-sub" id="profile-summary">男 · 30歲 · 172cm · 72kg → 目標 66kg</div>
 </div>
 <div style="display:flex; gap:6px;">
 <button class="btn-ghost" onclick="openModal('install-modal')">🩺 同步教學</button>
@@ -534,8 +534,8 @@ font: inherit;
 <span id="cal-status" class="badge badge-low">進度理想</span>
 </div>
 <div style="display:flex; justify-content:space-between; align-items:baseline;">
-<div class="big-num"><span id="cal-consumed">0</span> <small>/ <span id="cal-target">2056</span> kcal</small></div>
-<div style="font-size:13px; font-weight:700; color:var(--primary);">剩餘 <span id="cal-remain">2056</span> kcal</div>
+<div class="big-num"><span id="cal-consumed">0</span> <small>/ <span id="cal-target">1750</span> kcal</small></div>
+<div style="font-size:13px; font-weight:700; color:var(--primary);">剩餘 <span id="cal-remain">1750</span> kcal</div>
 </div>
 <div class="progress-bg">
 <div class="progress-fill" id="cal-bar" style="width:0%"></div>
@@ -583,7 +583,7 @@ font: inherit;
 <button style="background:var(--orange);" onclick="setExactSteps()">設定步數</button>
 </div>
 <div style="font-size:11px; color:var(--muted); margin-top:6px;">
-💡 106kg 體重步行燃脂效率高，飯後散步 15–20 分鐘（約 2,000 步）既不傷膝蓋，也能避免劇烈運動產生乳酸阻礙排尿酸。
+💡 以你目前體重，步行燃脂效率已經唔錯；飯後散步 15–20 分鐘（約 2,000 步）既不傷膝蓋，也能避免劇烈運動產生乳酸阻礙排尿酸。
 </div>
 </div>
 <!-- 睡眠時間與品質追蹤 -->
@@ -626,7 +626,7 @@ font: inherit;
 <span id="gout-badge" class="badge badge-low">痛風風險：低</span>
 </div>
 <div style="display:flex; justify-content:space-between; align-items:baseline;">
-<div class="big-num" style="color:var(--blue);"><span id="water-consumed">0</span> <small>/ <span id="water-target">3200</span> mL</small></div>
+<div class="big-num" style="color:var(--blue);"><span id="water-consumed">0</span> <small>/ <span id="water-target">2500</span> mL</small></div>
 <div style="font-size:12px; color:var(--muted);">咖啡因：<strong id="caffeine-consumed">0</strong> / 400 mg</div>
 </div>
 <div class="progress-bg">
@@ -654,12 +654,12 @@ font: inherit;
 <div class="card">
 <div class="card-header">
 <h2 class="card-title">🎯 減重進度追蹤（安全排酸速率）</h2>
-<span style="font-size:12px; font-weight:700; color:var(--primary);" id="weight-eta">約 43 週達標</span>
+<span style="font-size:12px; font-weight:700; color:var(--primary);" id="weight-eta">約 10 週達標</span>
 </div>
 <div style="display:flex; justify-content:space-between; font-size:13px; font-weight:600;">
-<span>目前：<strong id="w-curr-disp">106.0</strong> kg</span>
-<span>還需減：<strong id="w-diff-disp" style="color:var(--amber);">26.0</strong> kg</span>
-<span>目標：<strong id="w-goal-disp" style="color:var(--green);">80.0</strong> kg</span>
+<span>目前：<strong id="w-curr-disp">72.0</strong> kg</span>
+<span>還需減：<strong id="w-diff-disp" style="color:var(--amber);">6.0</strong> kg</span>
+<span>目標：<strong id="w-goal-disp" style="color:var(--green);">66.0</strong> kg</span>
 </div>
 <div class="progress-bg">
 <div class="progress-fill" id="weight-bar" style="width:5%; background:var(--green);"></div>
@@ -713,7 +713,7 @@ font: inherit;
 <div class="modal-backdrop" id="add-modal">
 <div class="modal">
 <div class="modal-header">
-<h3>➕ 新增飲食紀錄</h3>
+<h3 id="add-modal-title">➕ 新增飲食紀錄</h3>
 <button class="close-btn" onclick="closeModal('add-modal')">✕</button>
 </div>
 <div class="photo-box">
@@ -780,6 +780,10 @@ font: inherit;
 <input type="number" id="f-caffeine" placeholder="例如：150" />
 </div>
 </div>
+<div class="form-group">
+<label>飲品容量 (mL，選填 — 會自動加入今日飲水)</label>
+<input type="number" id="f-drink-ml" placeholder="例如：400（黑咖啡、無糖茶、湯）" />
+</div>
 <div class="row-3">
 <div class="form-group">
 <label>蛋白質 (g)</label>
@@ -796,7 +800,7 @@ font: inherit;
 </div>
 <div id="ratio-preview" class="manual-sync-hint" style="margin-top:2px;"></div>
 <label style="display:flex; align-items:center; gap:8px; font-size:13px; margin:10px 0 0;"><input type="checkbox" id="f-save-quick" style="width:auto; margin:0;" /> ⭐ 同時存為「常吃餐點」</label>
-<button class="btn-primary" onclick="saveNewFood()">儲存這筆飲食紀錄</button>
+<button class="btn-primary" id="add-modal-save" onclick="saveNewFood()">儲存這筆飲食紀錄</button>
 </div>
 </div>
 <!-- 複製昨日餐點 -->
@@ -832,21 +836,21 @@ font: inherit;
 </div>
 <div class="form-group">
 <label>年齡 (歲)</label>
-<input type="number" id="p-age" value="28" />
+<input type="number" id="p-age" value="30" />
 </div>
 </div>
 <div class="row-3">
 <div class="form-group">
 <label>身高 (cm)</label>
-<input type="number" id="p-height" value="186" />
+<input type="number" id="p-height" value="172" />
 </div>
 <div class="form-group">
 <label>目前體重 (kg)</label>
-<input type="number" step="0.1" id="p-weight" value="106" />
+<input type="number" step="0.1" id="p-weight" value="72" />
 </div>
 <div class="form-group">
 <label>目標體重 (kg)</label>
-<input type="number" step="0.1" id="p-goal" value="80" />
+<input type="number" step="0.1" id="p-goal" value="66" />
 </div>
 </div>
 <div class="row-2">
@@ -872,7 +876,7 @@ font: inherit;
 </select>
 </div>
 <div class="advice-box" id="bmr-preview">
-依目前身體數據推算：BMR 約 2,088 kcal ｜ 減脂建議攝取約 2,170 kcal ｜ 每日飲水目標 3,200 mL
+依目前身體數據推算：BMR 約 1,650 kcal ｜ 每日 TDEE 約 1,980 kcal ｜ 減脂建議攝取 1,750 kcal ｜ 每日飲水目標 2,500 mL
 </div>
 <button class="btn-primary" onclick="saveProfile()">更新檔案並自動重算目標</button>
 <div style="margin-top:18px; padding-top:14px; border-top:1px dashed var(--border);">
@@ -927,7 +931,7 @@ font: inherit;
 </div>
 </div>
 </div>
-<div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">網頁版本 v2026-12-05.1</div>
+<div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">網頁版本 v2026-12-06.1</div>
 </div>
 </div>
 <!-- 安裝與同步說明彈窗 -->
@@ -990,17 +994,17 @@ const QUICK_FOODS = [
 ];
 const DEFAULT_PROFILE = {
 gender: "male",
-age: 28,
-height: 186,
-startWeight: 106,
-weight: 106,
-goalWeight: 80,
+age: 30,
+height: 172,
+startWeight: 72,
+weight: 72,
+goalWeight: 66,
 stepsGoal: 7500,
 sleepGoal: 7.5,
-bedtime: "22:30",
 activity: 1.2
 };
 let currentDate = todayStr();
+let editingFoodId = null;
 let followToday = true;
 let currentPhotoData = "";
 let pendingSyncData = null;
@@ -1392,7 +1396,13 @@ try { localStorage.setItem("nutri_quick_v1", JSON.stringify(list.slice(0, 40)));
 }
 function getQuickList() {
 const custom = getQuickCustom().map(function (f, i) {
-return { name: f.name, meal: f.meal || "早餐", cal: f.cal || 0, protein: f.protein || 0, carbs: f.carbs || 0, fat: f.fat || 0, gout: f.gout || "low", caffeine: f.caffeine || 0, custom: true, customIndex: i };
+return { name: f.name, meal: f.meal || "早餐", cal: f.cal || 0, protein: f.protein || 0, carbs: f.carbs || 0, fat: f.fat || 0, gout: f.gout || "low", caffeine: f.caffeine || 0, ml: f.ml || 0, custom: true, customIndex: i };
+});
+const MEAL_ORDER = { "早餐": 0, "午餐": 1, "下午茶/點心": 2, "晚餐": 3, "飲品": 4 };
+custom.sort(function (a, b) {
+const ka = MEAL_ORDER[a.meal] === undefined ? 9 : MEAL_ORDER[a.meal];
+const kb = MEAL_ORDER[b.meal] === undefined ? 9 : MEAL_ORDER[b.meal];
+return ka - kb;
 });
 return custom.concat(QUICK_FOODS.map(function (f) {
 return { name: f.name, meal: f.meal, cal: f.cal, protein: f.protein, carbs: f.carbs, fat: f.fat, gout: f.gout, caffeine: f.caffeine, custom: false, customIndex: -1 };
@@ -1411,9 +1421,43 @@ const list = getQuickList();
 const src = list[idx];
 if (!src) return;
 const data = getDayData(currentDate);
-data.foods.push({ id: Date.now(), name: src.name, meal: src.meal, time: "", cal: src.cal, protein: src.protein, carbs: src.carbs, fat: src.fat, gout: src.gout, caffeine: src.caffeine });
+data.foods.push({ id: Date.now(), name: src.name, meal: src.meal, time: "", cal: src.cal, protein: src.protein, carbs: src.carbs, fat: src.fat, gout: src.gout, caffeine: src.caffeine, ml: src.ml || 0 });
+if (src.ml > 0) data.water = (Number(data.water) || 0) + src.ml;
 saveDayData(currentDate, data);
 renderAll();
+}
+function editFood(id) {
+const data = getDayData(currentDate);
+const item = (data.foods || []).filter(function (f) { return f.id === id; })[0];
+if (!item) return;
+editingFoodId = id;
+const ratioEl = document.getElementById("f-ratio");
+if (ratioEl) ratioEl.value = "1";
+document.getElementById("f-name").value = item.name || "";
+document.getElementById("f-meal").value = item.meal || "早餐";
+const timeEl = document.getElementById("f-time");
+if (timeEl) timeEl.value = item.time || "";
+const ratio = Number(item.ratio) || 1;
+document.getElementById("f-cal").value = Math.round((item.cal || 0) / ratio);
+document.getElementById("f-protein").value = Math.round((item.protein || 0) / ratio);
+document.getElementById("f-carbs").value = Math.round((item.carbs || 0) / ratio);
+document.getElementById("f-fat").value = Math.round((item.fat || 0) / ratio);
+document.getElementById("f-caffeine").value = Math.round((item.caffeine || 0) / ratio);
+const mlEl = document.getElementById("f-drink-ml");
+if (mlEl) mlEl.value = item.ml ? String(item.ml) : "";
+document.getElementById("f-gout").value = item.gout || "low";
+currentPhotoData = item.photo || "";
+const prev = document.getElementById("photo-preview");
+if (prev) {
+if (currentPhotoData) { prev.src = currentPhotoData; prev.style.display = "block"; }
+else { prev.style.display = "none"; }
+}
+const titleEl = document.getElementById("add-modal-title");
+if (titleEl) titleEl.textContent = "✏️ 修改飲食紀錄";
+const btnEl = document.getElementById("add-modal-save");
+if (btnEl) btnEl.textContent = "儲存修改";
+updateRatioPreview();
+openModal("add-modal");
 }
 function deleteFood(id) {
 const data = getDayData(currentDate);
@@ -1789,7 +1833,7 @@ alert("請輸入食物名稱與熱量！");
 return;
 }
 if (!confirmWrongDate("飲食紀錄")) return;
-const ratio = Number(document.getElementById("f-ratio").value);
+const ratio = Number(document.getElementById("f-ratio").value) || 1;
 const ratioLabel = ratio === 1 ? "" :  `(${Math.round(ratio * 100)}%份量)`;
 const timeEl = document.getElementById("f-time");
 const item = {
@@ -1803,10 +1847,24 @@ carbs: Math.round((Number(document.getElementById("f-carbs").value) || 0) * rati
 fat: Math.round((Number(document.getElementById("f-fat").value) || 0) * ratio),
 gout: document.getElementById("f-gout").value,
 caffeine: Math.round((Number(document.getElementById("f-caffeine").value) || 0) * ratio),
+ml: Math.max(0, Math.round(Number((document.getElementById("f-drink-ml") || {}).value) || 0)),
 photo: currentPhotoData || ""
 };
 const data = getDayData(currentDate);
+if (editingFoodId !== null) {
+const idx = data.foods.findIndex(function (f) { return f.id === editingFoodId; });
+const oldItem = idx >= 0 ? data.foods[idx] : null;
+if (oldItem && Number(oldItem.ml) > 0) data.water = Math.max(0, (Number(data.water) || 0) - Number(oldItem.ml));
+if (idx >= 0) data.foods[idx] = item; else data.foods.push(item);
+editingFoodId = null;
+const titleEl = document.getElementById("add-modal-title");
+if (titleEl) titleEl.textContent = "➕ 新增飲食紀錄";
+const btnEl = document.getElementById("add-modal-save");
+if (btnEl) btnEl.textContent = "儲存這筆飲食紀錄";
+} else {
 data.foods.push(item);
+}
+if (item.ml > 0) data.water = (Number(data.water) || 0) + item.ml;
 saveDayData(currentDate, data);
 const quickEl = document.getElementById("f-save-quick");
 if (quickEl && quickEl.checked) {
@@ -1832,6 +1890,8 @@ document.getElementById("f-protein").value = "";
 document.getElementById("f-carbs").value = "";
 document.getElementById("f-fat").value = "";
 document.getElementById("f-caffeine").value = "";
+const mlReset = document.getElementById("f-drink-ml");
+if (mlReset) mlReset.value = "";
 document.getElementById("f-ratio").value = "1";
 document.getElementById("photo-preview").style.display = "none";
 document.getElementById("photo-ai-hint").textContent = "";
@@ -1977,6 +2037,9 @@ const bedEl = document.getElementById("p-bedtime");
 if (bedEl) bedEl.value = p.bedtime || "22:30";
 const t = calcTargets(p);
 document.getElementById("bmr-preview").textContent = `依目前身體數據推算：BMR 約 ${t.bmr} kcal ｜ 每日 TDEE 約 ${t.tdee} kcal ｜ 減脂建議攝取 ${t.calTarget} kcal ｜ 每日飲水目標 ${t.waterTarget} mL`;
+const tInfo = calcTargets(getProfile());
+const previewEl = document.getElementById("bmr-preview");
+if (previewEl) previewEl.textContent = `依目前身體數據推算：BMR 約 ${tInfo.bmr} kcal ｜ 每日 TDEE 約 ${tInfo.tdee} kcal ｜ 減脂建議攝取 ${tInfo.calTarget} kcal ｜ 每日飲水目標 ${tInfo.waterTarget} mL`;
 const ai = getAISettings();
 const keyEl = document.getElementById("ai-key");
 if (keyEl) keyEl.value = ai.key;
@@ -2082,7 +2145,36 @@ return [
 "💧 飲水達標：" + waterOk + "／" + (waterDays || 0) + " 日（目標 " + waterTarget + " mL）",
 "⚖️ 體重變化：" + wLine,
 "🦴 關節狀態：正常 " + jointOk + " 日 · 微酸 " + jointWarn + " 日 · 發作 " + jointFlare + " 日"
-];
+].concat(jointCorrelation(rows, waterTarget));
+}
+function jointCorrelation(rows, waterTarget) {
+const out = [];
+rows.forEach(function (r) {
+let d = null;
+try { const raw = localStorage.getItem("nutri_day_v4_" + r.date); if (raw) d = JSON.parse(raw); } catch (e) { d = null; }
+if (!d || (d.joint !== "warning" && d.joint !== "flare")) return;
+const parts = [];
+const p = String(r.date).split("-").map(Number);
+let prevInfo = [];
+for (let back = 1; back <= 2; back++) {
+const dd = new Date(Date.UTC(p[0], p[1] - 1, p[2]));
+dd.setUTCDate(dd.getUTCDate() - back);
+const key = dd.toISOString().split("T")[0];
+let pd = null;
+try { const raw = localStorage.getItem("nutri_day_v4_" + key); if (raw) pd = JSON.parse(raw); } catch (e) { pd = null; }
+if (!pd) continue;
+const w = Number(pd.water) || 0;
+const risky = (pd.foods || []).filter(function (f) { return f.gout === "high" || f.gout === "mid"; }).length;
+const flags = [];
+if (w > 0 && w < waterTarget * 0.9) flags.push("飲水 " + w.toLocaleString() + " mL");
+if (risky > 0) flags.push("中高風險 " + risky + " 項");
+if (flags.length) prevInfo.push("前" + back + "日 " + flags.join("、"));
+}
+if (!prevInfo.length) prevInfo.push("前兩日飲水同風險都正常");
+out.push("　" + r.date + (d.joint === "flare" ? " 🔥 發作" : " ⚠️ 微酸") + " — " + prevInfo.join("；"));
+});
+if (!out.length) return [];
+return ["🔍 關節 vs 前兩日：", out.slice(0, 4)];
 }
 function showWeekReview() {
 const el = document.getElementById("week-review");
@@ -2467,7 +2559,7 @@ listEl.innerHTML = `<div style="text-align:center; color:var(--muted); padding:1
 listEl.innerHTML = data.foods.map(f => {
 const gLabel = f.gout === "high" ? `<span class="badge badge-high">高痛風風險</span>` : (f.gout === "mid" ? `<span class="badge badge-mid">中風險</span>` : `<span class="badge badge-low">低風險</span>`);
 const thumb = f.photo ? `<img src="${f.photo}" class="food-thumb" alt="餐點相片" />` : "";
-return `<div class="food-item"> ${thumb} <div style="flex:1;"> <div class="food-name">[${f.meal}${f.time ? " " + f.time : ""}] ${f.name}</div> <div class="food-meta">${f.cal} kcal · 蛋白 ${f.protein}g · 碳水 ${f.carbs}g · 脂肪 ${f.fat}g ${f.caffeine ?`· 咖啡因 ${f.caffeine}mg`: ""}</div> <div style="margin-top:4px;">${gLabel}</div> </div> <button class="del-btn" onclick="deleteFood(${f.id})">刪除</button> </div>`;
+return `<div class="food-item"> ${thumb} <div style="flex:1;"> <div class="food-name">[${f.meal}${f.time ? " " + f.time : ""}] ${f.name}</div> <div class="food-meta">${f.cal} kcal · 蛋白 ${f.protein}g · 碳水 ${f.carbs}g · 脂肪 ${f.fat}g ${f.caffeine ?`· 咖啡因 ${f.caffeine}mg`: ""}</div> <div style="margin-top:4px;">${gLabel}</div> </div> <div style="display:flex; flex-direction:column; gap:6px;"><button class="del-btn" style="background:#e0f2fe; color:#0284c7;" onclick="editFood(${f.id})">✏️</button><button class="del-btn" onclick="deleteFood(${f.id})">刪除</button></div> </div>`;
 }).join("");
 }
 }
