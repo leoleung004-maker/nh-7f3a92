@@ -494,11 +494,11 @@ font: inherit;
 <div class="header-top">
 <div>
 <h1 class="header-title">🥗 減脂與痛風營養師</h1>
-<div class="header-sub" id="profile-summary">男 · 30歲 · 172cm · 72kg → 目標 66kg</div>
+<div class="header-sub" id="profile-summary">男 · 28歲 · 186cm · 106kg → 目標 80kg</div>
 </div>
 <div style="display:flex; gap:6px;">
 <button class="btn-ghost" onclick="openModal('install-modal')">🩺 同步教學</button>
-<button class="btn-ghost" onclick="openModal('profile-modal')">👤 檔案目標</button>
+<button class="btn-ghost" onclick="openModal('profile-modal')">👤 檔案目標<span id="backup-dot" style="display:none; width:7px; height:7px; border-radius:50%; background:#ef4444; margin-left:5px; vertical-align:middle;"></span></button>
 </div>
 </div>
 <div class="date-bar" id="date-bar">
@@ -534,8 +534,8 @@ font: inherit;
 <span id="cal-status" class="badge badge-low">進度理想</span>
 </div>
 <div style="display:flex; justify-content:space-between; align-items:baseline;">
-<div class="big-num"><span id="cal-consumed">0</span> <small>/ <span id="cal-target">1750</span> kcal</small></div>
-<div style="font-size:13px; font-weight:700; color:var(--primary);">剩餘 <span id="cal-remain">1750</span> kcal</div>
+<div class="big-num"><span id="cal-consumed">0</span> <small>/ <span id="cal-target">2056</span> kcal</small></div>
+<div style="font-size:13px; font-weight:700; color:var(--primary);">剩餘 <span id="cal-remain">2056</span> kcal</div>
 </div>
 <div class="progress-bg">
 <div class="progress-fill" id="cal-bar" style="width:0%"></div>
@@ -583,7 +583,7 @@ font: inherit;
 <button style="background:var(--orange);" onclick="setExactSteps()">設定步數</button>
 </div>
 <div style="font-size:11px; color:var(--muted); margin-top:6px;">
-💡 以你目前體重，步行燃脂效率已經唔錯；飯後散步 15–20 分鐘（約 2,000 步）既不傷膝蓋，也能避免劇烈運動產生乳酸阻礙排尿酸。
+💡 106kg 體重步行燃脂效率高，飯後散步 15–20 分鐘（約 2,000 步）既不傷膝蓋，也能避免劇烈運動產生乳酸阻礙排尿酸。
 </div>
 </div>
 <!-- 睡眠時間與品質追蹤 -->
@@ -626,7 +626,7 @@ font: inherit;
 <span id="gout-badge" class="badge badge-low">痛風風險：低</span>
 </div>
 <div style="display:flex; justify-content:space-between; align-items:baseline;">
-<div class="big-num" style="color:var(--blue);"><span id="water-consumed">0</span> <small>/ <span id="water-target">2500</span> mL</small></div>
+<div class="big-num" style="color:var(--blue);"><span id="water-consumed">0</span> <small>/ <span id="water-target">3200</span> mL</small></div>
 <div style="font-size:12px; color:var(--muted);">咖啡因：<strong id="caffeine-consumed">0</strong> / 400 mg</div>
 </div>
 <div class="progress-bg">
@@ -641,17 +641,25 @@ font: inherit;
 <div class="advice-box" id="gout-advice">
 ✅ 今日痛風觸發風險低，持續保持充足飲水即可幫助腎臟穩定排泄尿酸。
 </div>
+<div style="margin-top:12px;">
+<div style="font-size:11px; color:var(--muted); margin-bottom:6px;">今日關節狀態（會記入趨勢同週報）</div>
+<div class="row-3">
+<button class="btn-secondary" id="joint-ok" onclick="setJoint('ok')">✅ 正常</button>
+<button class="btn-secondary" id="joint-warning" onclick="setJoint('warning')">⚠️ 微酸</button>
+<button class="btn-secondary" id="joint-flare" onclick="setJoint('flare')">🔥 發作</button>
+</div>
+</div>
 </div>
 <!-- 減重進度追蹤卡片 -->
 <div class="card">
 <div class="card-header">
 <h2 class="card-title">🎯 減重進度追蹤（安全排酸速率）</h2>
-<span style="font-size:12px; font-weight:700; color:var(--primary);" id="weight-eta">約 10 週達標</span>
+<span style="font-size:12px; font-weight:700; color:var(--primary);" id="weight-eta">約 43 週達標</span>
 </div>
 <div style="display:flex; justify-content:space-between; font-size:13px; font-weight:600;">
-<span>目前：<strong id="w-curr-disp">72.0</strong> kg</span>
-<span>還需減：<strong id="w-diff-disp" style="color:var(--amber);">6.0</strong> kg</span>
-<span>目標：<strong id="w-goal-disp" style="color:var(--green);">66.0</strong> kg</span>
+<span>目前：<strong id="w-curr-disp">106.0</strong> kg</span>
+<span>還需減：<strong id="w-diff-disp" style="color:var(--amber);">26.0</strong> kg</span>
+<span>目標：<strong id="w-goal-disp" style="color:var(--green);">80.0</strong> kg</span>
 </div>
 <div class="progress-bg">
 <div class="progress-fill" id="weight-bar" style="width:5%; background:var(--green);"></div>
@@ -683,7 +691,7 @@ font: inherit;
 <div class="card">
 <div class="card-header">
 <h2 class="card-title">⚡ 常吃餐點快捷加入</h2>
-<span style="font-size:11px; color:var(--muted);">左右滑動選擇</span>
+<button id="quick-edit-toggle" class="mini-sync-btn" onclick="toggleQuickEdit()">管理</button>
 </div>
 <div class="quick-scroll" id="quick-list"></div>
 </div>
@@ -791,6 +799,19 @@ font: inherit;
 <button class="btn-primary" onclick="saveNewFood()">儲存這筆飲食紀錄</button>
 </div>
 </div>
+<!-- 複製昨日餐點 -->
+<div class="modal-backdrop" id="copy-modal">
+<div class="modal">
+<div class="modal-header">
+<h3>📋 複製昨日餐點</h3>
+<button class="close-btn" onclick="closeModal('copy-modal')">✕</button>
+</div>
+<div id="copy-summary" style="font-size:13px; color:var(--muted); margin-bottom:12px;"></div>
+<button class="btn-secondary" onclick="doCopyYesterday('all')">全部複製</button>
+<button class="btn-secondary" style="margin-top:8px;" onclick="doCopyYesterday('早餐')">只複製早餐</button>
+<button class="btn-secondary" style="margin-top:8px;" onclick="doCopyYesterday('飲品')">只複製飲品</button>
+</div>
+</div>
 <!-- 個人檔案與目標彈窗 -->
 <div class="modal-backdrop" id="profile-modal">
 <div class="modal">
@@ -808,21 +829,21 @@ font: inherit;
 </div>
 <div class="form-group">
 <label>年齡 (歲)</label>
-<input type="number" id="p-age" value="30" />
+<input type="number" id="p-age" value="28" />
 </div>
 </div>
 <div class="row-3">
 <div class="form-group">
 <label>身高 (cm)</label>
-<input type="number" id="p-height" value="172" />
+<input type="number" id="p-height" value="186" />
 </div>
 <div class="form-group">
 <label>目前體重 (kg)</label>
-<input type="number" step="0.1" id="p-weight" value="72" />
+<input type="number" step="0.1" id="p-weight" value="106" />
 </div>
 <div class="form-group">
 <label>目標體重 (kg)</label>
-<input type="number" step="0.1" id="p-goal" value="66" />
+<input type="number" step="0.1" id="p-goal" value="80" />
 </div>
 </div>
 <div class="row-2">
@@ -836,6 +857,10 @@ font: inherit;
 </div>
 </div>
 <div class="form-group">
+<label>預計瞓覺時間（用嚟提醒夜食）</label>
+<input type="time" id="p-bedtime" value="22:30" />
+</div>
+<div class="form-group">
 <label>日常活動量</label>
 <select id="p-activity">
 <option value="1.2">日常運動量少 / 久坐為主</option>
@@ -844,7 +869,7 @@ font: inherit;
 </select>
 </div>
 <div class="advice-box" id="bmr-preview">
-存檔後會顯示依你身體數據推算嘅 BMR、建議攝取熱量同飲水目標
+依目前身體數據推算：BMR 約 2,088 kcal ｜ 減脂建議攝取約 2,170 kcal ｜ 每日飲水目標 3,200 mL
 </div>
 <button class="btn-primary" onclick="saveProfile()">更新檔案並自動重算目標</button>
 <div style="margin-top:18px; padding-top:14px; border-top:1px dashed var(--border);">
@@ -889,6 +914,7 @@ font: inherit;
 <button class="btn-secondary" onclick="exportBackup()">⬇️ 匯出</button>
 <button class="btn-secondary" onclick="toggleImport()">⬆️ 匯入</button>
 </div>
+<div id="backup-last" class="manual-sync-hint"></div>
 <div id="import-area" style="display:none; margin-top:10px;">
 <textarea id="import-text" placeholder="貼上備份 JSON，或者撳下面「揀檔案」" style="width:100%; min-height:72px; padding:10px 12px; border:1px solid var(--border); border-radius:10px; font-size:12px; font-family:ui-monospace, Menlo, Consolas, monospace; background:#f8fafc; color:var(--text); resize:vertical;"></textarea>
 <input type="file" id="import-file" accept=".json,application/json" style="display:none;" onchange="handleImportFile(event)" />
@@ -898,7 +924,7 @@ font: inherit;
 </div>
 </div>
 </div>
-<div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">網頁版本 v2026-12-03.1</div>
+<div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">網頁版本 v2026-12-04.1</div>
 </div>
 </div>
 <!-- 安裝與同步說明彈窗 -->
@@ -961,13 +987,14 @@ const QUICK_FOODS = [
 ];
 const DEFAULT_PROFILE = {
 gender: "male",
-age: 30,
-height: 172,
-startWeight: 72,
-weight: 72,
-goalWeight: 66,
+age: 28,
+height: 186,
+startWeight: 106,
+weight: 106,
+goalWeight: 80,
 stepsGoal: 7500,
 sleepGoal: 7.5,
+bedtime: "22:30",
 activity: 1.2
 };
 let currentDate = todayStr();
@@ -1004,11 +1031,18 @@ water: parsed.water || 0,
 steps: parsed.steps || 0,
 sleepHours: parsed.sleepHours || 0,
 sleepQuality: parsed.sleepQuality || "",
+joint: parsed.joint || "",
 weight: (typeof parsed.weight === "number" && !isNaN(parsed.weight) && parsed.weight > 0) ? parsed.weight : null,
 foods: parsed.foods || []
 };
 }
-return { water: 0, steps: 0, sleepHours: 0, sleepQuality: "", weight: null, foods: [] };
+return { water: 0, steps: 0, sleepHours: 0, sleepQuality: "", joint: "", weight: null, foods: [] };
+}
+function setJoint(v) {
+const data = getDayData(currentDate);
+data.joint = (data.joint === v) ? "" : v;
+saveDayData(currentDate, data);
+renderAll();
 }
 function getWeightHistory() {
 const out = [];
@@ -1384,24 +1418,50 @@ data.foods = data.foods.filter(f => f.id !== id);
 saveDayData(currentDate, data);
 renderAll();
 }
-function copyYesterday() {
+function getYesterdayData() {
 const parts = String(currentDate).split("-").map(Number);
 const d = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
 d.setUTCDate(d.getUTCDate() - 1);
 const yKey = d.toISOString().split("T")[0];
 let y = null;
 try { const raw = localStorage.getItem("nutri_day_v4_" + yKey); if (raw) y = JSON.parse(raw); } catch (e) { y = null; }
-if (!y || !Array.isArray(y.foods) || !y.foods.length) {
-alert("昨日（" + yKey + "）冇飲食紀錄可以複製");
+return { key: yKey, data: y };
+}
+function copyYesterday() {
+const y = getYesterdayData();
+if (!y.data || !Array.isArray(y.data.foods) || !y.data.foods.length) {
+alert("昨日（" + y.key + "）冇飲食紀錄可以複製");
 return;
 }
-if (!confirm("複製昨日（" + yKey + "）嘅 " + y.foods.length + " 筆飲食紀錄到呢一日？")) return;
+const sum = document.getElementById("copy-summary");
+if (sum) {
+const counts = {};
+y.data.foods.forEach(function (f) { counts[f.meal] = (counts[f.meal] || 0) + 1; });
+sum.textContent = "昨日（" + y.key + "）共 " + y.data.foods.length + " 筆：" +
+Object.keys(counts).map(function (k) { return k + " " + counts[k] + " 筆"; }).join(" · ");
+}
+openModal("copy-modal");
+}
+function doCopyYesterday(filter) {
+const y = getYesterdayData();
+if (!y.data || !Array.isArray(y.data.foods) || !y.data.foods.length) {
+closeModal("copy-modal");
+alert("昨日（" + y.key + "）冇飲食紀錄可以複製");
+return;
+}
+const picked = y.data.foods.filter(function (f) { return filter === "all" || f.meal === filter; });
+if (!picked.length) {
+alert(filter === "all" ? "冇紀錄可以複製" : "昨日冇「" + filter + "」紀錄");
+return;
+}
 const data = getDayData(currentDate);
-y.foods.forEach(function (f) {
+picked.forEach(function (f) {
 data.foods.push(Object.assign({}, f, { id: Date.now() + Math.floor(Math.random() * 100000) + data.foods.length }));
 });
 saveDayData(currentDate, data);
+closeModal("copy-modal");
 renderAll();
+alert("✅ 已複製 " + picked.length + " 筆紀錄");
 }
 function clearDayFoods() {
 if (!confirm("確定清空當日所有飲食紀錄嗎？")) return;
@@ -1787,6 +1847,7 @@ weight: Number(document.getElementById("p-weight").value) || 72,
 goalWeight: Number(document.getElementById("p-goal").value) || 66,
 stepsGoal: Number(document.getElementById("p-steps-goal").value) || 7500,
 sleepGoal: Number(document.getElementById("p-sleep-goal").value) || 7.5,
+bedtime: (document.getElementById("p-bedtime") ? String(document.getElementById("p-bedtime").value || "22:30") : "22:30"),
 activity: Number(document.getElementById("p-activity").value) || 1.2
 };
 localStorage.setItem("nutri_profile_v3", JSON.stringify(p));
@@ -1832,6 +1893,8 @@ if (area) area.style.display = "block";
 try {
 if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(json);
 } catch (e) {}
+try { localStorage.setItem("nutri_last_export", todayStr()); } catch (e) {}
+renderBackupState();
 const days = Object.keys(payload.data).filter(function (k) { return k.indexOf("nutri_day_v4_") === 0; }).length;
 if (downloaded) {
 alert(`✅ 已匯出 ${days} 日紀錄（${name}）。同時放咗一份落「匯入」框同剪貼簿做後備。`);
@@ -1907,6 +1970,8 @@ document.getElementById("p-goal").value = p.goalWeight;
 document.getElementById("p-steps-goal").value = p.stepsGoal;
 document.getElementById("p-sleep-goal").value = p.sleepGoal;
 document.getElementById("p-activity").value = String(p.activity);
+const bedEl = document.getElementById("p-bedtime");
+if (bedEl) bedEl.value = p.bedtime || "22:30";
 const t = calcTargets(p);
 document.getElementById("bmr-preview").textContent = `依目前身體數據推算：BMR 約 ${t.bmr} kcal ｜ 每日 TDEE 約 ${t.tdee} kcal ｜ 減脂建議攝取 ${t.calTarget} kcal ｜ 每日飲水目標 ${t.waterTarget} mL`;
 const ai = getAISettings();
@@ -1976,14 +2041,12 @@ const cSum = document.getElementById("trend-cal-summary");
 if (cSum) cSum.textContent = logged.length ? `熱量：平均 ${avg} kcal／日（目標 ${target} kcal，${logged.length} 日有紀錄）` : `熱量：目標 ${target} kcal，呢段時間未有紀錄`;
 renderCalChart(rows, target);
 }
-function showWeekReview() {
-const el = document.getElementById("week-review");
-if (!el) return;
-if (el.style.display === "block") { el.style.display = "none"; return; }
+function buildWeekText() {
 const rows = getTrendRows(7);
 const foodDays = rows.filter(function (r) { return r.cal > 0; });
 const avgCal = foodDays.length ? Math.round(foodDays.reduce(function (s, r) { return s + r.cal; }, 0) / foodDays.length) : 0;
 let proSum = 0, proDays = 0, stepSum = 0, stepDays = 0, sleepSum = 0, sleepDays = 0, waterOk = 0, waterDays = 0;
+let jointOk = 0, jointWarn = 0, jointFlare = 0;
 const waterTarget = calcTargets(getProfile()).waterTarget;
 rows.forEach(function (r) {
 let d = null;
@@ -1997,6 +2060,9 @@ proDays++;
 if (Number(d.steps) > 0) { stepSum += Number(d.steps); stepDays++; }
 if (Number(d.sleepHours) > 0) { sleepSum += Number(d.sleepHours); sleepDays++; }
 if (Number(d.water) > 0) { waterDays++; if (Number(d.water) >= waterTarget * 0.9) waterOk++; }
+if (d.joint === "ok") jointOk++;
+else if (d.joint === "warning") jointWarn++;
+else if (d.joint === "flare") jointFlare++;
 });
 const weights = rows.filter(function (r) { return r.weight !== null; });
 let wLine = "紀錄不足";
@@ -2004,21 +2070,39 @@ if (weights.length >= 2) {
 const delta = +(weights[weights.length - 1].weight - weights[0].weight).toFixed(1);
 wLine = (delta > 0 ? "+" : (delta < 0 ? "−" : "±")) + Math.abs(delta).toFixed(1) + " kg";
 }
-el.innerHTML = [
+return [
 "📅 近 7 日回顧（" + rows[0].date + " → " + rows[rows.length - 1].date + "）",
 "🔥 平均熱量：" + (avgCal ? avgCal.toLocaleString() + " kcal／日（" + foodDays.length + " 日有紀錄）" : "未有紀錄"),
 "🥩 平均蛋白質：" + (proDays ? Math.round(proSum / proDays) + " g／日" : "未有紀錄"),
 "👟 平均步數：" + (stepDays ? Math.round(stepSum / stepDays).toLocaleString() + " 步／日" : "未有紀錄"),
 "😴 平均睡眠：" + (sleepDays ? (sleepSum / sleepDays).toFixed(1) + " 小時" : "未有紀錄"),
 "💧 飲水達標：" + waterOk + "／" + (waterDays || 0) + " 日（目標 " + waterTarget + " mL）",
-"⚖️ 體重變化：" + wLine
-].join("<br>");
+"⚖️ 體重變化：" + wLine,
+"🦴 關節狀態：正常 " + jointOk + " 日 · 微酸 " + jointWarn + " 日 · 發作 " + jointFlare + " 日"
+];
+}
+function showWeekReview() {
+const el = document.getElementById("week-review");
+if (!el) return;
+if (el.style.display === "block") { el.style.display = "none"; return; }
+el.innerHTML = buildWeekText().join("<br>") + '<div style="margin-top:10px;"><button class="btn-secondary" onclick="copyWeekText()">📋 複製週報文字</button></div>';
 el.style.background = "#f8fafc";
 el.style.border = "1px solid var(--border)";
 el.style.borderRadius = "12px";
 el.style.padding = "10px 12px";
 el.style.color = "var(--text)";
 el.style.display = "block";
+}
+function copyWeekText() {
+const text = buildWeekText().join("\n");
+if (navigator.clipboard && navigator.clipboard.writeText) {
+try {
+navigator.clipboard.writeText(text);
+alert("✅ 週報文字已複製，可以直接貼出嚟。");
+return;
+} catch (e) {}
+}
+alert(text.slice(0, 900));
 }
 function renderWeightChart(pts) {
 const el = document.getElementById("trend-weight-chart");
@@ -2065,14 +2149,60 @@ el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%; height:100px; di
 `<text x="${pad}" y="10" font-size="9" fill="#64748b">目標 ${target} kcal（虛線）</text>` +
 `</svg>`;
 }
+let quickEditMode = false;
+function toggleQuickEdit() {
+quickEditMode = !quickEditMode;
+const btn = document.getElementById("quick-edit-toggle");
+if (btn) {
+btn.textContent = quickEditMode ? "完成" : "管理";
+btn.style.background = quickEditMode ? "var(--primary)" : "#f1f5f9";
+btn.style.color = quickEditMode ? "#fff" : "var(--text)";
+}
+renderQuickList();
+}
+function editQuickItem(i) {
+const list = getQuickCustom();
+const item = list[i];
+if (!item) return;
+const line = prompt("修改常用餐點（用 | 分隔）：\n名稱|熱量|蛋白質|碳水|脂肪", [item.name, item.cal, item.protein, item.carbs, item.fat].join("|"));
+if (line === null) return;
+const parts = String(line).split("|").map(function (s) { return s.trim(); });
+if (parts.length < 2 || !parts[0]) {
+alert("格式唔啱。例子：烚蛋 2 隻|260|16|22|11");
+return;
+}
+item.name = parts[0];
+item.cal = Math.max(0, Math.round(Number(parts[1]) || 0));
+item.protein = Math.max(0, Math.round(Number(parts[2]) || 0));
+item.carbs = Math.max(0, Math.round(Number(parts[3]) || 0));
+item.fat = Math.max(0, Math.round(Number(parts[4]) || 0));
+saveQuickCustom(list);
+renderQuickList();
+}
 function renderQuickList() {
 const el = document.getElementById("quick-list");
 if (!el) return;
 el.innerHTML = getQuickList().map(function (f, idx) {
 const star = f.custom ? "⭐ " : "";
-const del = f.custom ? ` <span onclick="event.stopPropagation(); deleteQuickItem(${f.customIndex})" style="color:#dc2626; font-weight:700; padding:0 4px;">✕</span>` : "";
-return `<button class="quick-chip" onclick="addQuickFood(${idx})"> <strong>+ ${star}${f.name}${del}</strong> <span>${f.cal} kcal · 蛋白 ${f.protein}g</span> </button>`;
+const tools = (f.custom && quickEditMode)
+? ` <span onclick="event.stopPropagation(); editQuickItem(${f.customIndex})" style="color:#0f766e; font-weight:700; padding:0 3px;">✎</span><span onclick="event.stopPropagation(); deleteQuickItem(${f.customIndex})" style="color:#dc2626; font-weight:700; padding:0 3px;">✕</span>`
+: "";
+return `<button class="quick-chip" onclick="addQuickFood(${idx})"> <strong>+ ${star}${f.name}${tools}</strong> <span>${f.cal} kcal · 蛋白 ${f.protein}g</span> </button>`;
 }).join("");
+}
+function renderBackupState() {
+const dot = document.getElementById("backup-dot");
+let last = "";
+try { last = localStorage.getItem("nutri_last_export") || ""; } catch (e) { last = ""; }
+let daysSince = 999;
+if (last) {
+const t0 = Date.parse(last + "T00:00:00Z");
+const t1 = Date.parse(todayStr() + "T00:00:00Z");
+if (!isNaN(t0) && !isNaN(t1)) daysSince = Math.round((t1 - t0) / 86400000);
+}
+if (dot) dot.style.display = daysSince >= 7 ? "inline-block" : "none";
+const lastEl = document.getElementById("backup-last");
+if (lastEl) lastEl.textContent = last ? ("上次匯出：" + last + "（" + daysSince + " 日前）") : "未匯出過備份 — 建議每月撳一次「⬇️ 匯出」";
 }
 function summaryLine(icon, label, cur, target, unit, fmt) {
 const f = fmt || function (v) { return String(v); };
@@ -2121,9 +2251,7 @@ tips.push("🔥 今日已超標 " + (cal - calTarget).toLocaleString() + " kcal�
 if (highGout > 0) {
 tips.push("⚠️ 今日有 " + highGout + " 項高風險食物，記住飲足水、避免酒精同劇烈運動。");
 }
-if (hour >= 20 && cal > 0 && cal < calTarget * 0.6) {
-tips.push("🍽 今日食得偏少（" + cal.toLocaleString() + " kcal，目標 " + calTarget.toLocaleString() + "）。長期過低會拖慢代謝、之後容易暴食，可以補一份蛋白質＋少量碳水。");
-}
+
 if (pro < proTarget * 0.6) {
 tips.push("🥩 蛋白質仲差 " + Math.max(0, Math.round(proTarget - pro)) + " g，可以加手掌大細嘅雞胸／魚／豆腐／希臘乳酪。");
 }
@@ -2133,9 +2261,22 @@ tips.push("💧 飲水仲差 " + Math.max(0, t.waterTarget - water).toLocaleStri
 if (steps < p.stepsGoal * 0.5 && hour >= 17) {
 tips.push("👟 步數仲差 " + Math.max(0, p.stepsGoal - steps).toLocaleString() + " 步，飯後散步 15–20 分鐘已經追到一半。");
 }
+if (hour >= 20 && cal > 0 && cal < calTarget * 0.6) {
+tips.push("🍽 今日食得偏少（" + cal.toLocaleString() + " kcal，目標 " + calTarget.toLocaleString() + "）。長期過低會拖慢代謝、之後容易暴食，可以補一份蛋白質＋少量碳水。");
+}
+let lastMeal = "";
+(data.foods || []).forEach(function (f) { if (f.time && f.time > lastMeal) lastMeal = f.time; });
+if (lastMeal) {
+const bed = String(p.bedtime || "22:30");
+const toMin = function (s) { const a = String(s).split(":").map(Number); return (a[0] || 0) * 60 + (a[1] || 0); };
+const gapMin = toMin(bed) - toMin(lastMeal);
+if (gapMin >= 0 && gapMin < 180) {
+tips.push("🌙 最後一餐 " + lastMeal + "，距離你預計瞓覺 " + bed + " 只有 " + gapMin + " 分鐘。睡前唔好再食嘢，躺下時可以墊高枕頭幫助消化。");
+}
+}
 const adviceEl = document.getElementById("summary-advice");
 if (adviceEl) {
-adviceEl.innerHTML = tips.length ? tips.slice(0, 3).map(function (x) { return "<div>" + x + "</div>"; }).join("") : "✅ 各項進度都唔錯，保持落去！";
+adviceEl.innerHTML = tips.length ? tips.slice(0, 4).map(function (x) { return "<div>" + x + "</div>"; }).join("") : "✅ 各項進度都唔錯，保持落去！";
 adviceEl.style.borderLeftColor = tips.length ? "var(--amber)" : "var(--green)";
 }
 const badge = document.getElementById("summary-badge");
@@ -2171,6 +2312,7 @@ const tEl = document.getElementById("off-today-today");
 if (tEl) tEl.textContent = todayStr();
 }
 renderDailySummary();
+renderBackupState();
 document.getElementById("profile-summary").textContent = `${p.gender === "male" ? "男" : "女"} · ${p.age}歲 · ${p.height}cm · ${p.weight}kg → 目標 ${p.goalWeight}kg`;
 const steps = data.steps || 0;
 const stepKm = ((steps * (p.height * 0.415 / 100)) / 1000).toFixed(1);
@@ -2297,6 +2439,15 @@ goutBadge.className = "badge badge-low";
 goutBadge.textContent = "痛風風險：低（安全）";
 goutAdvice.innerHTML = `✅ 今日飲食普林與果糖控制極佳，且飲水量充足，非常有助維持尿酸平穩！`;
 }
+const jointKeys = ["ok", "warning", "flare"];
+jointKeys.forEach(function (k) {
+const btn = document.getElementById("joint-" + k);
+if (!btn) return;
+const on = data.joint === k;
+btn.style.background = on ? "var(--primary)" : "#f1f5f9";
+btn.style.color = on ? "#fff" : "var(--text)";
+btn.style.borderColor = on ? "var(--primary)" : "var(--border)";
+});
 document.getElementById("food-count").textContent = data.foods.length;
 const lateEl = document.getElementById("late-warning");
 if (lateEl) {
