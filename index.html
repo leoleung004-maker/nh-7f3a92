@@ -655,6 +655,7 @@ font: inherit;
 <div class="card-header">
 <h2 class="card-title">📈 體重與熱量趨勢</h2>
 <div style="display:flex; gap:6px;">
+<button class="mini-sync-btn" onclick="showWeekReview()">本週回顧</button>
 <button class="mini-sync-btn" id="trend-7" onclick="setTrendDays(7)">7 日</button>
 <button class="mini-sync-btn" id="trend-14" onclick="setTrendDays(14)">14 日</button>
 </div>
@@ -663,6 +664,7 @@ font: inherit;
 <div id="trend-weight-chart"></div>
 <div id="trend-cal-summary" style="font-size:12px; color:var(--muted); margin-top:12px;"></div>
 <div id="trend-cal-chart"></div>
+<div id="week-review" style="display:none; margin-top:12px; font-size:12px; line-height:1.75;"></div>
 </div>
 <!-- 常吃食物一鍵加入 -->
 <div class="card">
@@ -676,8 +678,12 @@ font: inherit;
 <div class="card">
 <div class="card-header">
 <h2 class="card-title">📋 當日飲食明細 (<span id="food-count">0</span>)</h2>
+<div style="display:flex; gap:8px; align-items:center;">
+<button onclick="copyYesterday()" style="background:none; border:none; color:var(--primary); font-size:12px; font-weight:600; cursor:pointer;">複製昨日</button>
 <button onclick="clearDayFoods()" style="background:none; border:none; color:var(--muted); font-size:12px; cursor:pointer;">清空當日</button>
 </div>
+</div>
+<div id="late-warning" style="font-size:11px; color:var(--amber); margin-bottom:6px;"></div>
 <div id="food-list"></div>
 </div>
 </div>
@@ -766,6 +772,8 @@ font: inherit;
 <input type="number" id="f-fat" placeholder="0" />
 </div>
 </div>
+<div id="ratio-preview" class="manual-sync-hint" style="margin-top:2px;"></div>
+<label style="display:flex; align-items:center; gap:8px; font-size:13px; margin:10px 0 0;"><input type="checkbox" id="f-save-quick" style="width:auto; margin:0;" /> ⭐ 同時存為「常吃餐點」</label>
 <button class="btn-primary" onclick="saveNewFood()">儲存這筆飲食紀錄</button>
 </div>
 </div>
@@ -856,6 +864,7 @@ font: inherit;
 </div>
 <div id="ai-model-status" class="manual-sync-hint"></div>
 <button class="btn-secondary" onclick="saveAISettings()">儲存 AI 設定</button>
+<button class="btn-secondary" style="margin-top:8px;" onclick="clearAIKey()">🗑 清除 API Key</button>
 </div>
 <div style="margin-top:18px; padding-top:14px; border-top:1px dashed var(--border);">
 <div style="display:flex; align-items:baseline; justify-content:space-between; gap:8px;">
@@ -875,7 +884,7 @@ font: inherit;
 </div>
 </div>
 </div>
-<div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">網頁版本 v2026-11-29.1</div>
+<div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">網頁版本 v2026-11-30.1</div>
 </div>
 </div>
 <!-- 安裝與同步說明彈窗 -->
@@ -1310,16 +1319,64 @@ localStorage.setItem("nutri_profile_v3", JSON.stringify(profile));
 el.value = "";
 renderAll();
 }
+function getQuickCustom() {
+try {
+const raw = localStorage.getItem("nutri_quick_v1");
+const arr = raw ? JSON.parse(raw) : [];
+if (!Array.isArray(arr)) return [];
+return arr.filter(function (x) { return x && x.name; });
+} catch (e) { return []; }
+}
+function saveQuickCustom(list) {
+try { localStorage.setItem("nutri_quick_v1", JSON.stringify(list.slice(0, 40))); } catch (e) {}
+}
+function getQuickList() {
+const custom = getQuickCustom().map(function (f, i) {
+return { name: f.name, meal: f.meal || "早餐", cal: f.cal || 0, protein: f.protein || 0, carbs: f.carbs || 0, fat: f.fat || 0, gout: f.gout || "low", caffeine: f.caffeine || 0, custom: true, customIndex: i };
+});
+return custom.concat(QUICK_FOODS.map(function (f) {
+return { name: f.name, meal: f.meal, cal: f.cal, protein: f.protein, carbs: f.carbs, fat: f.fat, gout: f.gout, caffeine: f.caffeine, custom: false, customIndex: -1 };
+}));
+}
+function deleteQuickItem(i) {
+const list = getQuickCustom();
+if (i < 0 || i >= list.length) return;
+if (!confirm("由「常吃餐點」移除「" + list[i].name + "」？")) return;
+list.splice(i, 1);
+saveQuickCustom(list);
+renderQuickList();
+}
 function addQuickFood(idx) {
-const item = QUICK_FOODS[idx];
+const list = getQuickList();
+const src = list[idx];
+if (!src) return;
 const data = getDayData(currentDate);
-data.foods.push({ id: Date.now(), ...item });
+data.foods.push({ id: Date.now(), name: src.name, meal: src.meal, time: "", cal: src.cal, protein: src.protein, carbs: src.carbs, fat: src.fat, gout: src.gout, caffeine: src.caffeine });
 saveDayData(currentDate, data);
 renderAll();
 }
 function deleteFood(id) {
 const data = getDayData(currentDate);
 data.foods = data.foods.filter(f => f.id !== id);
+saveDayData(currentDate, data);
+renderAll();
+}
+function copyYesterday() {
+const parts = String(currentDate).split("-").map(Number);
+const d = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
+d.setUTCDate(d.getUTCDate() - 1);
+const yKey = d.toISOString().split("T")[0];
+let y = null;
+try { const raw = localStorage.getItem("nutri_day_v4_" + yKey); if (raw) y = JSON.parse(raw); } catch (e) { y = null; }
+if (!y || !Array.isArray(y.foods) || !y.foods.length) {
+alert("昨日（" + yKey + "）冇飲食紀錄可以複製");
+return;
+}
+if (!confirm("複製昨日（" + yKey + "）嘅 " + y.foods.length + " 筆飲食紀錄到呢一日？")) return;
+const data = getDayData(currentDate);
+y.foods.forEach(function (f) {
+data.foods.push(Object.assign({}, f, { id: Date.now() + Math.floor(Math.random() * 100000) + data.foods.length }));
+});
 saveDayData(currentDate, data);
 renderAll();
 }
@@ -1450,6 +1507,7 @@ document.getElementById("f-fat").value = f.fat;
 document.getElementById("f-gout").value = f.gout;
 const box = document.getElementById("food-suggest");
 if (box) box.innerHTML = "";
+updateRatioPreview();
 }
 const AI_DEFAULT_MODEL = "gemini-flash-latest";
 const AI_RETIRED_MODELS = ["gemini-1.0-pro", "gemini-1.5-flash", "gemini-1.5-flash-8b", "gemini-1.5-pro", "gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.5-flash-lite"];
@@ -1515,6 +1573,14 @@ const auto = autoEl ? String(autoEl.value || "1") === "1" : true;
 try { localStorage.setItem("nutri_ai_v1", JSON.stringify({ key: key, model: model, auto: auto })); } catch (e) {}
 alert(key ? "✅ 已儲存 AI 設定（模型：" + model + "）" : "已清除 API key，AI 估算停用");
 }
+function clearAIKey() {
+if (!confirm("確定清除 API key？清除之後 AI 影相估算會停用（其他功能唔受影響）")) return;
+try { localStorage.removeItem("nutri_ai_v1"); } catch (e) {}
+const keyEl = document.getElementById("ai-key");
+if (keyEl) keyEl.value = "";
+const st = document.getElementById("ai-model-status");
+if (st) st.textContent = "✅ 已清除 API key";
+}
 function extractJsonObject(text) {
 const s = String(text || "");
 const a = s.indexOf("{");
@@ -1538,6 +1604,7 @@ const g = String(obj.gout || "").toLowerCase();
 if (g === "low" || g === "mid" || g === "high") document.getElementById("f-gout").value = g;
 const box = document.getElementById("food-suggest");
 if (box) box.innerHTML = "";
+updateRatioPreview();
 return true;
 }
 async function estimateWithAI() {
@@ -1555,7 +1622,7 @@ if (status) status.textContent = "⏳ 分析中…（約 3-8 秒）";
 try {
 const base64 = String(currentPhotoData).split(",")[1] || "";
 const prompt = "你係註冊營養師。分析呢張食物相片，估算實際可食用份量同營養素。只回傳一個 JSON 物件，唔要任何解釋文字：\n" +
-'{"name":"食物名稱（含份量，例如：叉燒飯 1 碟）","portion":"估計份量（例如：約 350g）","calories":整數,"protein":整數,"carbs":整數,"fat":整數,"gout":"low 或 mid 或 high","confidence":0到1,"note":"一句話說明估算依據"}';
+'{"name":"食物名稱（含份量，例如：叉燒飯 1 碟）","portion":"估計份量（例如：約 350g）","calories":整數,"protein":整數,"carbs":整數,"fat":整數,"gout":"low 或 mid 或 high","goutReason":"一句話講痛風風險原因（例如：有雞皮／濃芡／海鮮／內臟／高果糖飲品；低風險寫：無高普林食材）","confidence":0到1,"note":"一句話說明估算依據"}';
 const url = "https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(s.model) + ":generateContent?key=" + encodeURIComponent(s.key);
 const res = await fetch(url, {
 method: "POST",
@@ -1578,14 +1645,26 @@ if (!obj) throw new Error("AI 回覆唔係有效 JSON");
 applyAIResult(obj);
 const conf = syncNumber(obj.confidence);
 if (status) {
-status.textContent = "✅ AI 估算完成" + (obj.portion ? "（" + obj.portion + "）" : "") +
-(conf !== null ? " · 信心 " + Math.round(conf * 100) + "%" : "") +
-"　請核對份量再儲存";
+let line = "✅ AI 估算完成" + (obj.portion ? "（" + obj.portion + "）" : "") +
+(conf !== null ? " · 信心 " + Math.round(conf * 100) + "%" : "");
+if (obj.goutReason) line += " ｜ 🩺 " + obj.goutReason;
+line += "　請核對份量再儲存";
+status.textContent = line;
 }
 } catch (e) {
 const msg = (e && e.message ? e.message : String(e));
 if (status) status.textContent = "❌ 估算失敗：" + msg + (/404|not found|not supported|invalid/i.test(msg) ? "（模型可能已停用或唔支援圖片，去 👤 檔案目標 撳「🔄 用 API key 讀取」揀返新模型）" : "");
 }
+}
+function updateRatioPreview() {
+const el = document.getElementById("ratio-preview");
+if (!el) return;
+const num = function (id) { const e = document.getElementById(id); return e ? Number(e.value) || 0 : 0; };
+const ratioEl = document.getElementById("f-ratio");
+const ratio = ratioEl ? (Number(ratioEl.value) || 1) : 1;
+const cal = num("f-cal"), pro = num("f-protein"), carb = num("f-carbs"), fat = num("f-fat");
+if (!cal && !pro && !carb && !fat) { el.textContent = ""; return; }
+el.textContent = "實際入帳：" + Math.round(cal * ratio) + " kcal · 蛋白 " + Math.round(pro * ratio) + "g · 碳水 " + Math.round(carb * ratio) + "g · 脂肪 " + Math.round(fat * ratio) + "g" + (ratio === 1 ? "（100%）" : "（" + Math.round(ratio * 100) + "% 份量）");
 }
 function saveNewFood() {
 const name = document.getElementById("f-name").value.trim();
@@ -1613,6 +1692,24 @@ photo: currentPhotoData || ""
 const data = getDayData(currentDate);
 data.foods.push(item);
 saveDayData(currentDate, data);
+const quickEl = document.getElementById("f-save-quick");
+if (quickEl && quickEl.checked) {
+const baseQuick = {
+name: name,
+meal: item.meal,
+cal: Math.round(calRaw),
+protein: Math.round(Number(document.getElementById("f-protein").value) || 0),
+carbs: Math.round(Number(document.getElementById("f-carbs").value) || 0),
+fat: Math.round(Number(document.getElementById("f-fat").value) || 0),
+gout: item.gout,
+caffeine: Math.round(Number(document.getElementById("f-caffeine").value) || 0)
+};
+const custom = getQuickCustom().filter(function (q) { return q.name !== baseQuick.name; });
+custom.unshift(baseQuick);
+saveQuickCustom(custom);
+quickEl.checked = false;
+renderQuickList();
+}
 document.getElementById("f-name").value = "";
 document.getElementById("f-cal").value = "";
 document.getElementById("f-protein").value = "";
@@ -1822,6 +1919,50 @@ const cSum = document.getElementById("trend-cal-summary");
 if (cSum) cSum.textContent = logged.length ? `熱量：平均 ${avg} kcal／日（目標 ${target} kcal，${logged.length} 日有紀錄）` : `熱量：目標 ${target} kcal，呢段時間未有紀錄`;
 renderCalChart(rows, target);
 }
+function showWeekReview() {
+const el = document.getElementById("week-review");
+if (!el) return;
+if (el.style.display === "block") { el.style.display = "none"; return; }
+const rows = getTrendRows(7);
+const foodDays = rows.filter(function (r) { return r.cal > 0; });
+const avgCal = foodDays.length ? Math.round(foodDays.reduce(function (s, r) { return s + r.cal; }, 0) / foodDays.length) : 0;
+let proSum = 0, proDays = 0, stepSum = 0, stepDays = 0, sleepSum = 0, sleepDays = 0, waterOk = 0, waterDays = 0;
+const waterTarget = calcTargets(getProfile()).waterTarget;
+rows.forEach(function (r) {
+let d = null;
+try { const raw = localStorage.getItem("nutri_day_v4_" + r.date); if (raw) d = JSON.parse(raw); } catch (e) { d = null; }
+if (!d) return;
+const foods = Array.isArray(d.foods) ? d.foods : [];
+if (foods.length) {
+proSum += foods.reduce(function (s, f) { return s + (Number(f.protein) || 0); }, 0);
+proDays++;
+}
+if (Number(d.steps) > 0) { stepSum += Number(d.steps); stepDays++; }
+if (Number(d.sleepHours) > 0) { sleepSum += Number(d.sleepHours); sleepDays++; }
+if (Number(d.water) > 0) { waterDays++; if (Number(d.water) >= waterTarget * 0.9) waterOk++; }
+});
+const weights = rows.filter(function (r) { return r.weight !== null; });
+let wLine = "紀錄不足";
+if (weights.length >= 2) {
+const delta = +(weights[weights.length - 1].weight - weights[0].weight).toFixed(1);
+wLine = (delta > 0 ? "+" : (delta < 0 ? "−" : "±")) + Math.abs(delta).toFixed(1) + " kg";
+}
+el.innerHTML = [
+"📅 近 7 日回顧（" + rows[0].date + " → " + rows[rows.length - 1].date + "）",
+"🔥 平均熱量：" + (avgCal ? avgCal.toLocaleString() + " kcal／日（" + foodDays.length + " 日有紀錄）" : "未有紀錄"),
+"🥩 平均蛋白質：" + (proDays ? Math.round(proSum / proDays) + " g／日" : "未有紀錄"),
+"👟 平均步數：" + (stepDays ? Math.round(stepSum / stepDays).toLocaleString() + " 步／日" : "未有紀錄"),
+"😴 平均睡眠：" + (sleepDays ? (sleepSum / sleepDays).toFixed(1) + " 小時" : "未有紀錄"),
+"💧 飲水達標：" + waterOk + "／" + (waterDays || 0) + " 日（目標 " + waterTarget + " mL）",
+"⚖️ 體重變化：" + wLine
+].join("<br>");
+el.style.background = "#f8fafc";
+el.style.border = "1px solid var(--border)";
+el.style.borderRadius = "12px";
+el.style.padding = "10px 12px";
+el.style.color = "var(--text)";
+el.style.display = "block";
+}
 function renderWeightChart(pts) {
 const el = document.getElementById("trend-weight-chart");
 if (!el) return;
@@ -1869,7 +2010,12 @@ el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%; height:100px; di
 }
 function renderQuickList() {
 const el = document.getElementById("quick-list");
-el.innerHTML = QUICK_FOODS.map((f, idx) => `<button class="quick-chip" onclick="addQuickFood(${idx})"> <strong>+ ${f.name}</strong> <span>${f.cal} kcal · 蛋白 ${f.protein}g</span> </button>`).join("");
+if (!el) return;
+el.innerHTML = getQuickList().map(function (f, idx) {
+const star = f.custom ? "⭐ " : "";
+const del = f.custom ? ` <span onclick="event.stopPropagation(); deleteQuickItem(${f.customIndex})" style="color:#dc2626; font-weight:700; padding:0 4px;">✕</span>` : "";
+return `<button class="quick-chip" onclick="addQuickFood(${idx})"> <strong>+ ${star}${f.name}${del}</strong> <span>${f.cal} kcal · 蛋白 ${f.protein}g</span> </button>`;
+}).join("");
 }
 function renderAll() {
 const p = getProfile();
@@ -2003,6 +2149,13 @@ goutBadge.textContent = "痛風風險：低（安全）";
 goutAdvice.innerHTML = `✅ 今日飲食普林與果糖控制極佳，且飲水量充足，非常有助維持尿酸平穩！`;
 }
 document.getElementById("food-count").textContent = data.foods.length;
+const lateEl = document.getElementById("late-warning");
+if (lateEl) {
+const lateItems = data.foods.filter(function (f) { return f.time && f.time >= "20:30"; });
+lateEl.textContent = lateItems.length
+? "🌙 今晚有 " + lateItems.length + " 筆 20:30 後嘅進食紀錄（最夜 " + lateItems[lateItems.length - 1].time + "）。建議食完至少 2–3 小時先平躺；宵夜避開高糖／高普林食物，減少夜間尿酸波動。"
+: "";
+}
 if (typeof renderTrend === "function") renderTrend();
 const listEl = document.getElementById("food-list");
 if (data.foods.length === 0) {
@@ -2019,6 +2172,13 @@ renderQuickList();
 renderAll();
 readHashSync();
 checkClipboardForSync();
+["f-cal", "f-ratio", "f-protein", "f-carbs", "f-fat"].forEach(function (id) {
+const el = document.getElementById(id);
+if (el && el.addEventListener) {
+el.addEventListener("input", updateRatioPreview);
+el.addEventListener("change", updateRatioPreview);
+}
+});
 function refreshOnResume() {
 if (document.visibilityState && document.visibilityState !== "visible") return;
 if (followToday) currentDate = todayStr();
