@@ -85,6 +85,8 @@ border-radius: 12px;
 padding: 6px 10px;
 margin-top: 12px;
 }
+.date-bar.off-today { background: rgba(245, 158, 11, 0.45); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45); }
+.date-bar.off-today span { color: #fffbeb; }
 .date-bar button {
 background: none;
 border: none;
@@ -499,11 +501,13 @@ font: inherit;
 <button class="btn-ghost" onclick="openModal('profile-modal')">👤 檔案目標</button>
 </div>
 </div>
-<div class="date-bar">
+<div class="date-bar" id="date-bar">
 <button onclick="changeDate(-1)">◀ 前一天</button>
 <span id="current-date-label">2026-11-23</span>
 <button onclick="changeDate(1)">後一天 ▶</button>
 </div>
+<button id="today-btn" onclick="goToday()" style="display:none; width:100%; margin-top:6px; background:rgba(255,255,255,0.22); color:#fff; border:1px solid rgba(255,255,255,0.4); border-radius:10px; padding:7px; font-size:12px; font-weight:700; cursor:pointer;">↩ 回到今天</button>
+<div id="off-today-banner" style="display:none; margin-top:8px; background:#fde68a; color:#78350f; border-radius:10px; padding:8px 10px; font-size:12px; font-weight:700; line-height:1.5;">⚠️ 你而家記錄緊 <span id="off-today-date"></span>，唔係今天（<span id="off-today-today"></span>）。呢頁新增嘅紀錄都會入 <span id="off-today-date2"></span>。</div>
 </header>
 <div class="container">
 <!-- 剪貼簿健康同步提示 -->
@@ -704,6 +708,7 @@ font: inherit;
 <img id="photo-preview" class="photo-preview" alt="食物預覽" />
 <div id="photo-ai-hint" style="font-size:12px; color:var(--primary); margin-top:6px; font-weight:600;"></div>
 </div>
+<div id="add-modal-date" style="display:none; margin-bottom:10px; background:#fde68a; color:#78350f; border-radius:10px; padding:8px 10px; font-size:12px; font-weight:700;">⚠️ 呢筆紀錄會存入 <span id="add-modal-date-text"></span>（唔係今天）</div>
 <div id="ai-box" style="display:none; margin-bottom:12px;">
 <button class="btn-secondary" onclick="estimateWithAI()">🤖 用 AI 估算營養</button>
 <div id="ai-status" class="manual-sync-hint"></div>
@@ -884,7 +889,7 @@ font: inherit;
 </div>
 </div>
 </div>
-<div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">網頁版本 v2026-11-30.1</div>
+<div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">網頁版本 v2026-12-01.1</div>
 </div>
 </div>
 <!-- 安裝與同步說明彈窗 -->
@@ -1237,6 +1242,15 @@ return;
 box.value = "";
 alert("✅ 已套用手動貼上嘅健康數據！");
 closeModal("install-modal");
+}
+function goToday() {
+currentDate = todayStr();
+followToday = true;
+renderAll();
+}
+function confirmWrongDate(what) {
+if (currentDate === todayStr()) return true;
+return confirm("⚠️ 你而家喺 " + currentDate + "（唔係今天 " + todayStr() + "）記錄" + what + "。\n\n確定要存入呢一日？");
 }
 function changeDate(offset) {
 const parts = currentDate.split("-").map(Number);
@@ -1673,6 +1687,7 @@ if (!name || isNaN(calRaw)) {
 alert("請輸入食物名稱與熱量！");
 return;
 }
+if (!confirmWrongDate("飲食紀錄")) return;
 const ratio = Number(document.getElementById("f-ratio").value);
 const ratioLabel = ratio === 1 ? "" :  `(${Math.round(ratio * 100)}%份量)`;
 const timeEl = document.getElementById("f-time");
@@ -1828,6 +1843,10 @@ alert(`✅ 已匯入 ${days} 日紀錄（${foods} 筆飲食）${hasProfile ? "�
 }
 function openModal(id) {
 if (id === "add-modal") {
+const warn = document.getElementById("add-modal-date");
+if (warn) warn.style.display = (currentDate === todayStr()) ? "none" : "block";
+const warnText = document.getElementById("add-modal-date-text");
+if (warnText) warnText.textContent = currentDate;
 const aiBox = document.getElementById("ai-box");
 if (aiBox) aiBox.style.display = currentPhotoData ? "block" : "none";
 const aiStat = document.getElementById("ai-status");
@@ -2021,7 +2040,25 @@ function renderAll() {
 const p = getProfile();
 const targets = calcTargets(p);
 const data = getDayData(currentDate);
-document.getElementById("current-date-label").textContent = currentDate;
+const isTodayView = currentDate === todayStr();
+document.getElementById("current-date-label").textContent = currentDate + (isTodayView ? "（今天）" : " · 非今天");
+const dateBarEl = document.getElementById("date-bar");
+if (dateBarEl) dateBarEl.className = isTodayView ? "date-bar" : "date-bar off-today";
+const todayBtn = document.getElementById("today-btn");
+if (todayBtn) {
+todayBtn.style.display = isTodayView ? "none" : "block";
+todayBtn.textContent = "↩ 回到今天（" + todayStr() + "）";
+}
+const offBanner = document.getElementById("off-today-banner");
+if (offBanner) offBanner.style.display = isTodayView ? "none" : "block";
+if (!isTodayView) {
+["off-today-date", "off-today-date2"].forEach(function (id) {
+const el = document.getElementById(id);
+if (el) el.textContent = currentDate;
+});
+const tEl = document.getElementById("off-today-today");
+if (tEl) tEl.textContent = todayStr();
+}
 document.getElementById("profile-summary").textContent = `${p.gender === "male" ? "男" : "女"} · ${p.age}歲 · ${p.height}cm · ${p.weight}kg → 目標 ${p.goalWeight}kg`;
 const steps = data.steps || 0;
 const stepKm = ((steps * (p.height * 0.415 / 100)) / 1000).toFixed(1);
