@@ -217,7 +217,7 @@ gap: 8px;
 margin-top: 10px;
 }
 .macro-box {
-background: #f8fafc;
+background: var(--pill);
 border-radius: 12px;
 padding: 8px;
 text-align: center;
@@ -280,7 +280,7 @@ scrollbar-width: none;
 .quick-scroll::-webkit-scrollbar { display: none; }
 .quick-chip {
 flex: 0 0 auto;
-background: #f8fafc;
+background: var(--pill);
 border: 1px solid var(--border);
 border-radius: 12px;
 padding: 8px 12px;
@@ -440,7 +440,7 @@ margin-top: 8px;
 display: none;
 }
 .advice-box {
-background: #f8fafc;
+background: var(--pill);
 border-left: 4px solid var(--primary);
 padding: 10px 12px;
 border-radius: 8px;
@@ -483,7 +483,7 @@ min-height: 76px;
 padding: 10px 12px;
 border: 1px solid var(--border);
 border-radius: 10px;
-background: #f8fafc;
+background: var(--pill);
 color: var(--text);
 font-size: 12px;
 font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -499,7 +499,7 @@ margin-top: 8px;
 }
 .suggest-item {
 text-align: left;
-background: #f8fafc;
+background: var(--pill);
 border: 1px solid var(--border);
 border-radius: 10px;
 padding: 8px 10px;
@@ -991,7 +991,7 @@ border-color: var(--border) !important;
 </div>
 <div id="backup-last" class="manual-sync-hint"></div>
 <div id="import-area" style="display:none; margin-top:10px;">
-<textarea id="import-text" placeholder="貼上備份 JSON，或者撳下面「揀檔案」" style="width:100%; min-height:72px; padding:10px 12px; border:1px solid var(--border); border-radius:10px; font-size:12px; font-family:ui-monospace, Menlo, Consolas, monospace; background:#f8fafc; color:var(--text); resize:vertical;"></textarea>
+<textarea id="import-text" placeholder="貼上備份 JSON，或者撳下面「揀檔案」" style="width:100%; min-height:72px; padding:10px 12px; border:1px solid var(--border); border-radius:10px; font-size:12px; font-family:ui-monospace, Menlo, Consolas, monospace; background:var(--pill); color:var(--text); resize:vertical;"></textarea>
 <input type="file" id="import-file" accept=".json,application/json" style="display:none;" onchange="handleImportFile(event)" />
 <div class="row-2" style="margin-top:8px;">
 <button class="btn-secondary" onclick="document.getElementById('import-file').click()">📄 揀檔案</button>
@@ -999,7 +999,7 @@ border-color: var(--border) !important;
 </div>
 </div>
 </div>
-<div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">網頁版本 v2026-12-11.1</div>
+<div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">網頁版本 v2026-12-12.1</div>
 </div>
 </div>
 <!-- 安裝與同步說明彈窗 -->
@@ -2398,7 +2398,7 @@ const el = document.getElementById("week-review");
 if (!el) return;
 if (el.style.display === "block") { el.style.display = "none"; return; }
 el.innerHTML = buildWeekText().join("<br>") + '<div style="margin-top:10px;"><button class="btn-secondary" onclick="copyWeekText()">📋 複製週報文字</button></div>';
-el.style.background = "#f8fafc";
+el.style.background = "var(--pill)";
 el.style.border = "1px solid var(--border)";
 el.style.borderRadius = "12px";
 el.style.padding = "10px 12px";
