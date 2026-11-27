@@ -11,6 +11,7 @@
 <title>個人減脂與痛風控管營養師</title>
 <style>
 :root {
+--pill: #f1f5f9;
 --bg: #f1f5f9;
 --card: #ffffff;
 --primary: #0f766e;
@@ -34,21 +35,6 @@
 --radius: 16px;
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-@media (prefers-color-scheme: dark) {
-:root {
---bg: #0b1220;
---card: #111827;
---text: #e5e7eb;
---muted: #94a3b8;
---border: #1f2937;
---primary-light: #0f3d3a;
---blue-light: #0b2b3d;
---purple-light: #241b3d;
---orange-light: #3a2210;
---amber-light: #3a2d10;
---red-light: #3d1618;
---green-light: #10301f;
-}
 body { background: var(--bg); color: var(--text); }
 .macro-box, .quick-chip, .manual-sync-box, .suggest-item, .btn-secondary { background: #182030; }
 .form-group input, .form-group select, #f-name, #f-cal, #f-protein, #f-carbs, #f-fat, #f-caffeine, #f-drink-ml, #f-time, #import-text, #manual-sync-input { background: #0f172a; color: var(--text); border-color: var(--border); }
@@ -441,7 +427,7 @@ margin-top: 6px;
 }
 .btn-secondary {
 width: 100%;
-background: #f1f5f9;
+background: var(--pill);
 color: var(--text);
 border: 1px solid var(--border);
 border-radius: 12px;
@@ -534,6 +520,34 @@ font: inherit;
 }
 .suggest-item strong { display: block; font-size: 13px; color: var(--text); }
 .suggest-item span { font-size: 11px; color: var(--muted); }
+@media (prefers-color-scheme: dark) {
+:root {
+--bg: #0b1220;
+--card: #111827;
+--text: #e5e7eb;
+--muted: #94a3b8;
+--border: #1f2937;
+--primary-light: #0f3d3a;
+--blue-light: #0b2b3d;
+--purple-light: #241b3d;
+--orange-light: #3a2210;
+--amber-light: #3a2d10;
+--red-light: #3d1618;
+--pill: #182030;
+--green-light: #10301f;
+.modal-backdrop { background: rgba(0, 0, 0, 0.7); }
+.modal { background: var(--card); }
+.card { box-shadow: none; }
+.date-bar { background: rgba(255,255,255,0.10); }
+.sync-banner { background: #052e22; border-color: #065f46; color: #a7f3d0; }
+.manual-sync-box { background: #2a1f10 !important; border-color: #7c4a12 !important; }
+.suggest-item, .quick-chip { background: var(--pill); border-color: var(--border); color: var(--text); }
+.suggest-item strong, .quick-chip strong { color: var(--text); }
+.btn-reset { background: var(--pill); color: var(--text); border-color: var(--border); }
+.del-btn { background: #3d1618; color: #fca5a5; }
+.photo-preview { background: #0f172a; }
+.tl-item, .manual-sync-hint { color: var(--muted); }
+}
 </style>
 </head>
 <body>
@@ -969,8 +983,8 @@ font: inherit;
 <div class="form-group">
 <label>影相之後</label>
 <select id="ai-auto">
-<option value="1">自動估算</option>
-<option value="0">手動撳掣</option>
+<option value="0">手動撳掣（建議）</option>
+<option value="1">影相後自動估算</option>
 </select>
 </div>
 </div>
@@ -997,7 +1011,7 @@ font: inherit;
 </div>
 </div>
 </div>
-<div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">網頁版本 v2026-12-08.1</div>
+<div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">網頁版本 v2026-12-09.1</div>
 </div>
 </div>
 <!-- 安裝與同步說明彈窗 -->
@@ -1709,7 +1723,7 @@ prev.style.display = "block";
 document.getElementById("photo-ai-hint").textContent = "✅ 已載入相片！請填寫或微調下方食物名稱與熱量後儲存。";
 if (!document.getElementById("f-name").value) {
 const baseName = String(file.name || "").replace(/\.[^/.]+$/, "").trim();
-const genericName = !baseName || /^(image|img|photo|screenshot|pxl_|img_|image_)/i.test(baseName);
+const genericName = !baseName || /^(image|img|photo|screenshot|pxl_|img_|image_|signal|dsc|whatsapp|wechat|微信|截圖)/i.test(baseName);
 if (!genericName) document.getElementById("f-name").value = baseName;
 }
 const aiBox = document.getElementById("ai-box");
@@ -1807,13 +1821,25 @@ const AI_DEFAULT_MODEL = "gemini-flash-latest";
 const AI_RETIRED_MODELS = ["gemini-1.0-pro", "gemini-1.5-flash", "gemini-1.5-flash-8b", "gemini-1.5-pro", "gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.5-flash-lite"];
 function getAISettings() {
 try {
+// 一次性遷移：預設改為手動估算
+try {
+if (localStorage.getItem("nutri_ai_manual_once") !== "1") {
+const raw0 = localStorage.getItem("nutri_ai_v1");
+if (raw0) {
+const s0 = JSON.parse(raw0);
+s0.auto = false;
+localStorage.setItem("nutri_ai_v1", JSON.stringify(s0));
+}
+localStorage.setItem("nutri_ai_manual_once", "1");
+}
+} catch (e0) {}
 const raw = localStorage.getItem("nutri_ai_v1");
 const s = raw ? JSON.parse(raw) : {};
 let model = String(s.model || AI_DEFAULT_MODEL);
 if (AI_RETIRED_MODELS.indexOf(model) >= 0) model = AI_DEFAULT_MODEL;
-return { key: String(s.key || ""), model: model, auto: s.auto === undefined ? true : !!s.auto };
+return { key: String(s.key || ""), model: model, auto: s.auto === undefined ? false : !!s.auto };
 } catch (e) {
-return { key: "", model: AI_DEFAULT_MODEL, auto: true };
+return { key: "", model: AI_DEFAULT_MODEL, auto: false };
 }
 }
 function pickBestModel(names) {
@@ -2252,9 +2278,9 @@ if (!wrap) return;
 const rows = getTrendRows(trendDays);
 const btn7 = document.getElementById("trend-7");
 const btn14 = document.getElementById("trend-14");
-if (btn7) btn7.style.background = trendDays === 7 ? "var(--primary)" : "#f1f5f9";
+if (btn7) btn7.style.background = trendDays === 7 ? "var(--primary)" : "var(--pill)";
 if (btn7) btn7.style.color = trendDays === 7 ? "#fff" : "var(--text)";
-if (btn14) btn14.style.background = trendDays === 14 ? "var(--primary)" : "#f1f5f9";
+if (btn14) btn14.style.background = trendDays === 14 ? "var(--primary)" : "var(--pill)";
 if (btn14) btn14.style.color = trendDays === 14 ? "#fff" : "var(--text)";
 const withWeight = rows.filter(function (r) { return r.weight !== null; });
 const wSum = document.getElementById("trend-weight-summary");
@@ -2428,7 +2454,7 @@ quickEditMode = !quickEditMode;
 const btn = document.getElementById("quick-edit-toggle");
 if (btn) {
 btn.textContent = quickEditMode ? "完成" : "管理";
-btn.style.background = quickEditMode ? "var(--primary)" : "#f1f5f9";
+btn.style.background = quickEditMode ? "var(--primary)" : "var(--pill)";
 btn.style.color = quickEditMode ? "#fff" : "var(--text)";
 }
 renderQuickList();
@@ -2782,7 +2808,7 @@ bowelKeys.forEach(function (k) {
 const btn = document.getElementById("bowel-" + k);
 if (!btn) return;
 const on = data.bowel === k;
-btn.style.background = on ? "var(--primary)" : "#f1f5f9";
+btn.style.background = on ? "var(--primary)" : "var(--pill)";
 btn.style.color = on ? "#fff" : "var(--text)";
 btn.style.borderColor = on ? "var(--primary)" : "var(--border)";
 });
@@ -2791,7 +2817,7 @@ jointKeys.forEach(function (k) {
 const btn = document.getElementById("joint-" + k);
 if (!btn) return;
 const on = data.joint === k;
-btn.style.background = on ? "var(--primary)" : "#f1f5f9";
+btn.style.background = on ? "var(--primary)" : "var(--pill)";
 btn.style.color = on ? "#fff" : "var(--text)";
 btn.style.borderColor = on ? "var(--primary)" : "var(--border)";
 });
@@ -2805,7 +2831,6 @@ lateEl.textContent = lateItems.length
 }
 if (typeof renderTrend === "function") renderTrend();
 if (typeof renderRecentList === "function") renderRecentList();
-hydratePhotos();
 const listEl = document.getElementById("food-list");
 if (data.foods.length === 0) {
 listEl.innerHTML = `<div style="text-align:center; color:var(--muted); padding:18px 0; font-size:13px;">今日尚未記錄任何餐點，點擊下方按鈕或上方快捷鍵開始記錄！</div>`;
@@ -2816,6 +2841,7 @@ const thumb = f.photoId ? `<img data-photo="${f.photoId}" class="food-thumb" alt
 return `<div class="food-item"> ${thumb} <div style="flex:1;"> <div class="food-name">[${f.meal}${f.time ? " " + f.time : ""}] ${f.name}</div> <div class="food-meta">${f.cal} kcal · 蛋白 ${f.protein}g · 碳水 ${f.carbs}g · 脂肪 ${f.fat}g ${f.caffeine ?`· 咖啡因 ${f.caffeine}mg`: ""}</div> <div style="margin-top:4px;">${gLabel}</div> </div> <div style="display:flex; flex-direction:column; gap:6px;"><button class="del-btn" style="background:#e0f2fe; color:#0284c7;" onclick="editFood(${f.id})">✏️</button><button class="del-btn" onclick="deleteFood(${f.id})">刪除</button></div> </div>`;
 }).join("");
 }
+hydratePhotos();
 }
 renderQuickList();
 renderAll();
