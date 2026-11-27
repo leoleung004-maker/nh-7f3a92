@@ -34,6 +34,33 @@
 --radius: 16px;
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+@media (prefers-color-scheme: dark) {
+:root {
+--bg: #0b1220;
+--card: #111827;
+--text: #e5e7eb;
+--muted: #94a3b8;
+--border: #1f2937;
+--primary-light: #0f3d3a;
+--blue-light: #0b2b3d;
+--purple-light: #241b3d;
+--orange-light: #3a2210;
+--amber-light: #3a2d10;
+--red-light: #3d1618;
+--green-light: #10301f;
+}
+body { background: var(--bg); color: var(--text); }
+.macro-box, .quick-chip, .manual-sync-box, .suggest-item, .btn-secondary { background: #182030; }
+.form-group input, .form-group select, #f-name, #f-cal, #f-protein, #f-carbs, #f-fat, #f-caffeine, #f-drink-ml, #f-time, #import-text, #manual-sync-input { background: #0f172a; color: var(--text); border-color: var(--border); }
+.modal { background: var(--card); }
+.advice-box { background: #0f1a2b; color: #cbd5e1; }
+.progress-bg { background: #1f2937; }
+.food-item { border-color: var(--border); }
+.food-meta { color: var(--muted); }
+.mini-sync-btn { background: #182030; color: var(--text); border-color: var(--border); }
+.photo-box { background: #0f2a26; border-color: #134e4a; }
+.date-bar { background: rgba(255,255,255,0.08); }
+}
 body {
 margin: 0;
 font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
@@ -124,6 +151,26 @@ font-size: 12px;
 font-weight: 700;
 cursor: pointer;
 white-space: nowrap;
+}
+.quick-nav {
+display: flex;
+gap: 8px;
+overflow-x: auto;
+padding: 10px 14px 0;
+max-width: 600px;
+margin: 0 auto;
+}
+.quick-nav::-webkit-scrollbar { display: none; }
+.quick-nav button {
+flex: 0 0 auto;
+background: var(--card);
+border: 1px solid var(--border);
+color: var(--text);
+border-radius: 999px;
+padding: 7px 14px;
+font-size: 12px;
+font-weight: 700;
+cursor: pointer;
 }
 .container {
 max-width: 600px;
@@ -509,6 +556,12 @@ font: inherit;
 <button id="today-btn" onclick="goToday()" style="display:none; width:100%; margin-top:6px; background:rgba(255,255,255,0.22); color:#fff; border:1px solid rgba(255,255,255,0.4); border-radius:10px; padding:7px; font-size:12px; font-weight:700; cursor:pointer;">↩ 回到今天</button>
 <div id="off-today-banner" style="display:none; margin-top:8px; background:#fde68a; color:#78350f; border-radius:10px; padding:8px 10px; font-size:12px; font-weight:700; line-height:1.5;">⚠️ 你而家記錄緊 <span id="off-today-date"></span>，唔係今天（<span id="off-today-today"></span>）。呢頁新增嘅紀錄都會入 <span id="off-today-date2"></span>。</div>
 </header>
+<div class="quick-nav">
+<button onclick="jumpTo('summary-card')">📌 小結</button>
+<button onclick="jumpTo('food-card')">📋 飲食</button>
+<button onclick="jumpTo('water-card')">💧 飲水</button>
+<button onclick="jumpTo('trend-card')">📈 趨勢</button>
+</div>
 <div class="container">
 <!-- 剪貼簿健康同步提示 -->
 <div class="sync-banner" id="clipboard-sync-banner">
@@ -528,7 +581,7 @@ font: inherit;
 <div id="summary-advice" class="advice-box" style="margin-top:10px;"></div>
 </div>
 <!-- 熱量總覽卡片 -->
-<div class="card">
+<div class="card" id="cal-card">
 <div class="card-header">
 <h2 class="card-title">🔥 今日熱量與收支平衡</h2>
 <span id="cal-status" class="badge badge-low">進度理想</span>
@@ -560,7 +613,7 @@ font: inherit;
 </div>
 </div>
 <!-- 運動步數追蹤卡片 -->
-<div class="card">
+<div class="card" id="steps-card">
 <div class="card-header">
 <h2 class="card-title">👟 今日運動步數（護膝燃脂）</h2>
 <span id="step-badge" class="badge badge-orange">尚需加油</span>
@@ -587,7 +640,7 @@ font: inherit;
 </div>
 </div>
 <!-- 睡眠時間與品質追蹤 -->
-<div class="card">
+<div class="card" id="sleep-card">
 <div class="card-header">
 <h2 class="card-title">😴 睡眠時間與作息管理</h2>
 <span id="sleep-badge" class="badge badge-purple">未記錄</span>
@@ -620,7 +673,7 @@ font: inherit;
 </div>
 </div>
 <!-- 飲水與痛風風險儀表板 -->
-<div class="card">
+<div class="card" id="water-card">
 <div class="card-header">
 <h2 class="card-title">💧 補水排尿酸 & 痛風監測</h2>
 <span id="gout-badge" class="badge badge-low">痛風風險：低</span>
@@ -651,7 +704,7 @@ font: inherit;
 </div>
 </div>
 <!-- 減重進度追蹤卡片 -->
-<div class="card">
+<div class="card" id="weight-card">
 <div class="card-header">
 <h2 class="card-title">🎯 減重進度追蹤（安全排酸速率）</h2>
 <span style="font-size:12px; font-weight:700; color:var(--primary);" id="weight-eta">約 10 週達標</span>
@@ -681,7 +734,7 @@ font: inherit;
 <div style="font-size:11px; color:var(--muted);">💡 痛風體質建議每週減重 0.5–0.8 kg，避免急速燃脂產生過多酮體阻礙尿酸排泄。</div>
 </div>
 <!-- 趨勢圖 -->
-<div class="card">
+<div class="card" id="trend-card">
 <div class="card-header">
 <h2 class="card-title">📈 體重與熱量趨勢</h2>
 <div style="display:flex; gap:6px;">
@@ -697,15 +750,19 @@ font: inherit;
 <div id="week-review" style="display:none; margin-top:12px; font-size:12px; line-height:1.75;"></div>
 </div>
 <!-- 常吃食物一鍵加入 -->
-<div class="card">
+<div class="card" id="quick-card">
 <div class="card-header">
 <h2 class="card-title">⚡ 常吃餐點快捷加入</h2>
 <button id="quick-edit-toggle" class="mini-sync-btn" onclick="toggleQuickEdit()">管理</button>
 </div>
 <div class="quick-scroll" id="quick-list"></div>
+<div style="margin-top:12px;">
+<div style="font-size:11px; color:var(--muted); margin-bottom:6px;">🕘 最近吃過（撳一下即加入）</div>
+<div class="quick-scroll" id="recent-list"></div>
+</div>
 </div>
 <!-- 今日飲食明細 -->
-<div class="card">
+<div class="card" id="food-card">
 <div class="card-header">
 <h2 class="card-title">📋 當日飲食明細 (<span id="food-count">0</span>)</h2>
 <div style="display:flex; gap:8px; align-items:center;">
@@ -940,7 +997,7 @@ font: inherit;
 </div>
 </div>
 </div>
-<div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">網頁版本 v2026-12-07.1</div>
+<div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">網頁版本 v2026-12-08.1</div>
 </div>
 </div>
 <!-- 安裝與同步說明彈窗 -->
@@ -1016,6 +1073,93 @@ let currentDate = todayStr();
 let editingFoodId = null;
 let followToday = true;
 let currentPhotoData = "";
+let photoDBPromise = null;
+function idbAvailable() { return typeof indexedDB !== "undefined" && indexedDB && typeof indexedDB.open === "function"; }
+function openPhotoDB() {
+if (!idbAvailable()) return Promise.reject(new Error("no-idb"));
+if (photoDBPromise) return photoDBPromise;
+photoDBPromise = new Promise(function (resolve, reject) {
+const req = indexedDB.open("nutri_photos", 1);
+req.onupgradeneeded = function () {
+const db = req.result;
+if (!db.objectStoreNames.contains("photos")) db.createObjectStore("photos");
+};
+req.onsuccess = function () { resolve(req.result); };
+req.onerror = function () { reject(req.error || new Error("idb-open-failed")); };
+});
+return photoDBPromise;
+}
+function idbPut(id, data) {
+return openPhotoDB().then(function (db) {
+return new Promise(function (resolve, reject) {
+const tx = db.transaction("photos", "readwrite");
+tx.objectStore("photos").put(data, id);
+tx.oncomplete = function () { resolve(true); };
+tx.onerror = function () { reject(tx.error || new Error("idb-put-failed")); };
+});
+});
+}
+function idbGet(id) {
+return openPhotoDB().then(function (db) {
+return new Promise(function (resolve, reject) {
+const tx = db.transaction("photos", "readonly");
+const req = tx.objectStore("photos").get(id);
+req.onsuccess = function () { resolve(req.result || ""); };
+req.onerror = function () { reject(req.error || new Error("idb-get-failed")); };
+});
+});
+}
+function idbDelete(id) {
+if (!id || !idbAvailable()) return Promise.resolve(false);
+return openPhotoDB().then(function (db) {
+return new Promise(function (resolve) {
+const tx = db.transaction("photos", "readwrite");
+tx.objectStore("photos").delete(id);
+tx.oncomplete = function () { resolve(true); };
+tx.onerror = function () { resolve(false); };
+});
+}).catch(function () { return false; });
+}
+function hydratePhotos() {
+if (!idbAvailable() || !document.querySelectorAll) return;
+const imgs = document.querySelectorAll("img[data-photo]");
+if (!imgs || !imgs.length) return;
+Array.prototype.forEach.call(imgs, function (img) {
+const id = img.getAttribute("data-photo");
+if (!id) return;
+img.removeAttribute("data-photo");
+idbGet(id).then(function (data) { if (data) img.src = data; }).catch(function () {});
+});
+}
+async function migratePhotosToIDB() {
+if (!idbAvailable()) return false;
+const keys = [];
+try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.indexOf("nutri_day_v4_") === 0) keys.push(k); } } catch (e) {}
+let moved = 0;
+for (let i = 0; i < keys.length; i++) {
+const key = keys[i];
+let d = null;
+try { d = JSON.parse(localStorage.getItem(key)); } catch (e) { continue; }
+if (!d || !Array.isArray(d.foods)) continue;
+let touched = false;
+for (let j = 0; j < d.foods.length; j++) {
+const f = d.foods[j];
+if (f && typeof f.photo === "string" && f.photo.indexOf("data:") === 0) {
+const pid = "ph" + Date.now() + "_" + i + "_" + j;
+try {
+await idbPut(pid, f.photo);
+f.photoId = pid;
+f.photo = "";
+touched = true;
+moved++;
+} catch (e) {}
+}
+}
+if (touched) { try { localStorage.setItem(key, JSON.stringify(d)); } catch (e) {} }
+}
+
+return moved > 0;
+}
 let pendingSyncData = null;
 function todayStr() {
 const d = new Date();
@@ -1477,6 +1621,8 @@ openModal("add-modal");
 }
 function deleteFood(id) {
 const data = getDayData(currentDate);
+const gone = data.foods.filter(function (f) { return f.id === id; })[0];
+if (gone && gone.photoId) idbDelete(gone.photoId);
 data.foods = data.foods.filter(f => f.id !== id);
 saveDayData(currentDate, data);
 renderAll();
@@ -1841,7 +1987,7 @@ const cal = num("f-cal"), pro = num("f-protein"), carb = num("f-carbs"), fat = n
 if (!cal && !pro && !carb && !fat) { el.textContent = ""; return; }
 el.textContent = "實際入帳：" + Math.round(cal * ratio) + " kcal · 蛋白 " + Math.round(pro * ratio) + "g · 碳水 " + Math.round(carb * ratio) + "g · 脂肪 " + Math.round(fat * ratio) + "g" + (ratio === 1 ? "（100%）" : "（" + Math.round(ratio * 100) + "% 份量）");
 }
-function saveNewFood() {
+async function saveNewFood() {
 const name = document.getElementById("f-name").value.trim();
 const calRaw = Number(document.getElementById("f-cal").value);
 if (!name || isNaN(calRaw)) {
@@ -1863,9 +2009,17 @@ carbs: Math.round((Number(document.getElementById("f-carbs").value) || 0) * rati
 fat: Math.round((Number(document.getElementById("f-fat").value) || 0) * ratio),
 gout: document.getElementById("f-gout").value,
 caffeine: Math.round((Number(document.getElementById("f-caffeine").value) || 0) * ratio),
+photoId: "",
 ml: Math.max(0, Math.round(Number((document.getElementById("f-drink-ml") || {}).value) || 0)),
-photo: currentPhotoData || ""
+photo: ""
 };
+let savedPhotoId = "";
+if (currentPhotoData && idbAvailable()) {
+const pid = "ph" + Date.now();
+try { await idbPut(pid, currentPhotoData); savedPhotoId = pid; item.photoId = pid; }
+catch (e) { alert("⚠️ 相片儲存失敗（空間不足？），已先儲存文字資料"); }
+}
+if (!savedPhotoId) item.photo = currentPhotoData || "";
 const data = getDayData(currentDate);
 if (editingFoodId !== null) {
 const idx = data.foods.findIndex(function (f) { return f.id === editingFoodId; });
@@ -2298,6 +2452,55 @@ item.fat = Math.max(0, Math.round(Number(parts[4]) || 0));
 saveQuickCustom(list);
 renderQuickList();
 }
+function jumpTo(id) {
+const el = document.getElementById(id);
+if (!el) return;
+try { el.scrollIntoView({ behavior: "smooth", block: "start" }); }
+catch (e) { el.scrollIntoView(); }
+}
+function getRecentFoods() {
+const found = {};
+try {
+for (let i = 0; i < localStorage.length; i++) {
+const key = localStorage.key(i);
+if (!key || key.indexOf("nutri_day_v4_") !== 0) continue;
+const date = key.replace("nutri_day_v4_", "");
+let d = null;
+try { d = JSON.parse(localStorage.getItem(key)); } catch (e) { continue; }
+if (!d || !Array.isArray(d.foods)) continue;
+d.foods.forEach(function (f) {
+if (!f || !f.name) return;
+const name = String(f.name);
+const prev = found[name];
+if (!prev || date > prev.date) {
+found[name] = { name: name, meal: f.meal || "早餐", cal: f.cal || 0, protein: f.protein || 0, carbs: f.carbs || 0, fat: f.fat || 0, gout: f.gout || "low", caffeine: f.caffeine || 0, ml: f.ml || 0, date: date };
+}
+});
+}
+} catch (e) {}
+return Object.keys(found).map(function (k) { return found[k]; })
+.sort(function (a, b) { return a.date < b.date ? 1 : (a.date > b.date ? -1 : 0); })
+.slice(0, 12);
+}
+function addRecentFood(idx) {
+const list = getRecentFoods();
+const src = list[idx];
+if (!src) return;
+const data = getDayData(currentDate);
+data.foods.push({ id: Date.now(), name: src.name, meal: src.meal, time: "", cal: src.cal, protein: src.protein, carbs: src.carbs, fat: src.fat, gout: src.gout, caffeine: src.caffeine, ml: src.ml || 0 });
+if (src.ml > 0) data.water = (Number(data.water) || 0) + src.ml;
+saveDayData(currentDate, data);
+renderAll();
+}
+function renderRecentList() {
+const el = document.getElementById("recent-list");
+if (!el) return;
+const list = getRecentFoods();
+if (!list.length) { el.innerHTML = '<span style="font-size:12px; color:var(--muted);">未有紀錄</span>'; return; }
+el.innerHTML = list.map(function (f, idx) {
+return `<button class="quick-chip" onclick="addRecentFood(${idx})"> <strong>+ ${f.name}</strong> <span>${f.cal} kcal · 蛋白 ${f.protein}g · ${f.date.slice(5)}</span> </button>`;
+}).join("");
+}
 function renderQuickList() {
 const el = document.getElementById("quick-list");
 if (!el) return;
@@ -2601,13 +2804,15 @@ lateEl.textContent = lateItems.length
 : "";
 }
 if (typeof renderTrend === "function") renderTrend();
+if (typeof renderRecentList === "function") renderRecentList();
+hydratePhotos();
 const listEl = document.getElementById("food-list");
 if (data.foods.length === 0) {
 listEl.innerHTML = `<div style="text-align:center; color:var(--muted); padding:18px 0; font-size:13px;">今日尚未記錄任何餐點，點擊下方按鈕或上方快捷鍵開始記錄！</div>`;
 } else {
 listEl.innerHTML = data.foods.map(f => {
 const gLabel = f.gout === "high" ? `<span class="badge badge-high">高痛風風險</span>` : (f.gout === "mid" ? `<span class="badge badge-mid">中風險</span>` : `<span class="badge badge-low">低風險</span>`);
-const thumb = f.photo ? `<img src="${f.photo}" class="food-thumb" alt="餐點相片" />` : "";
+const thumb = f.photoId ? `<img data-photo="${f.photoId}" class="food-thumb" alt="餐點相片" />` : (f.photo ? `<img src="${f.photo}" class="food-thumb" alt="餐點相片" />` : "");
 return `<div class="food-item"> ${thumb} <div style="flex:1;"> <div class="food-name">[${f.meal}${f.time ? " " + f.time : ""}] ${f.name}</div> <div class="food-meta">${f.cal} kcal · 蛋白 ${f.protein}g · 碳水 ${f.carbs}g · 脂肪 ${f.fat}g ${f.caffeine ?`· 咖啡因 ${f.caffeine}mg`: ""}</div> <div style="margin-top:4px;">${gLabel}</div> </div> <div style="display:flex; flex-direction:column; gap:6px;"><button class="del-btn" style="background:#e0f2fe; color:#0284c7;" onclick="editFood(${f.id})">✏️</button><button class="del-btn" onclick="deleteFood(${f.id})">刪除</button></div> </div>`;
 }).join("");
 }
@@ -2616,6 +2821,7 @@ renderQuickList();
 renderAll();
 readHashSync();
 checkClipboardForSync();
+if (typeof renderRecentList === "function") renderRecentList();
 ["f-cal", "f-ratio", "f-protein", "f-carbs", "f-fat"].forEach(function (id) {
 const el = document.getElementById(id);
 if (el && el.addEventListener) {
@@ -2635,6 +2841,9 @@ if (typeof window !== "undefined" && window.addEventListener) {
 window.addEventListener("focus", refreshOnResume);
 window.addEventListener("pageshow", refreshOnResume);
 }
+migratePhotosToIDB().then(function (moved) {
+if (moved) renderAll();
+}).catch(function () {});
 </script>
 </body>
 </html>
