@@ -35,18 +35,6 @@
 --radius: 16px;
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-body { background: var(--bg); color: var(--text); }
-.macro-box, .quick-chip, .manual-sync-box, .suggest-item, .btn-secondary { background: #182030; }
-.form-group input, .form-group select, #f-name, #f-cal, #f-protein, #f-carbs, #f-fat, #f-caffeine, #f-drink-ml, #f-time, #import-text, #manual-sync-input { background: #0f172a; color: var(--text); border-color: var(--border); }
-.modal { background: var(--card); }
-.advice-box { background: #0f1a2b; color: #cbd5e1; }
-.progress-bg { background: #1f2937; }
-.food-item { border-color: var(--border); }
-.food-meta { color: var(--muted); }
-.mini-sync-btn { background: #182030; color: var(--text); border-color: var(--border); }
-.photo-box { background: #0f2a26; border-color: #134e4a; }
-.date-bar { background: rgba(255,255,255,0.08); }
-}
 body {
 margin: 0;
 font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
@@ -527,26 +515,38 @@ font: inherit;
 --text: #e5e7eb;
 --muted: #94a3b8;
 --border: #1f2937;
+--pill: #182030;
 --primary-light: #0f3d3a;
 --blue-light: #0b2b3d;
 --purple-light: #241b3d;
 --orange-light: #3a2210;
 --amber-light: #3a2d10;
 --red-light: #3d1618;
---pill: #182030;
 --green-light: #10301f;
-.modal-backdrop { background: rgba(0, 0, 0, 0.7); }
+}
+body { background: var(--bg); color: var(--text); }
+.form-group input, .form-group select, .inline-input-row input, .inline-input-row select,
+#f-name, #f-time, #f-drink-ml, #import-text, #manual-sync-input, #ai-key, #ai-model, .manual-sync-box textarea {
+background: #0f172a !important;
+color: var(--text) !important;
+border-color: var(--border) !important;
+}
+.form-group input::placeholder, .inline-input-row input::placeholder { color: #64748b; }
+.macro-box { background: var(--pill); border-color: var(--border); }
+.macro-box .label { color: var(--muted); }
+.macro-box .val { color: var(--text); }
+.progress-bg { background: #1f2937; }
+.advice-box { background: #0f1a2b; color: #cbd5e1; }
 .modal { background: var(--card); }
-.card { box-shadow: none; }
-.date-bar { background: rgba(255,255,255,0.10); }
-.sync-banner { background: #052e22; border-color: #065f46; color: #a7f3d0; }
-.manual-sync-box { background: #2a1f10 !important; border-color: #7c4a12 !important; }
-.suggest-item, .quick-chip { background: var(--pill); border-color: var(--border); color: var(--text); }
-.suggest-item strong, .quick-chip strong { color: var(--text); }
-.btn-reset { background: var(--pill); color: var(--text); border-color: var(--border); }
+.modal-backdrop { background: rgba(0, 0, 0, 0.72); }
+.quick-chip, .suggest-item, .btn-secondary, .btn-reset, .mini-sync-btn { background: var(--pill); color: var(--text); border-color: var(--border); }
+.quick-chip strong, .suggest-item strong { color: var(--text); }
+.food-item { border-color: var(--border); }
 .del-btn { background: #3d1618; color: #fca5a5; }
-.photo-preview { background: #0f172a; }
-.tl-item, .manual-sync-hint { color: var(--muted); }
+.sync-banner { background: #052e22; border-color: #065f46; color: #a7f3d0; }
+.photo-box { background: #0f2a26; border-color: #134e4a; }
+.date-bar { background: rgba(255,255,255,0.10); }
+.card { box-shadow: none; }
 }
 </style>
 </head>
@@ -999,7 +999,7 @@ font: inherit;
 </div>
 </div>
 </div>
-<div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">網頁版本 v2026-12-10.1</div>
+<div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">網頁版本 v2026-12-11.1</div>
 </div>
 </div>
 <!-- 安裝與同步說明彈窗 -->
