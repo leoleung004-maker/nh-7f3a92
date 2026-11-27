@@ -975,19 +975,7 @@ font: inherit;
 <option value="gemini-pro-latest"></option>
 </datalist>
 </div>
-<div class="row-2">
-<div class="form-group">
-<label>不知道用邊個？</label>
-<button class="btn-secondary" onclick="loadAIModels()">🔄 用 API key 讀取</button>
-</div>
-<div class="form-group">
-<label>影相之後</label>
-<select id="ai-auto">
-<option value="0">手動撳掣（建議）</option>
-<option value="1">影相後自動估算</option>
-</select>
-</div>
-</div>
+<button class="btn-secondary" onclick="loadAIModels()">🔄 用 API key 讀取可用模型</button>
 <div id="ai-model-status" class="manual-sync-hint"></div>
 <button class="btn-secondary" onclick="saveAISettings()">儲存 AI 設定</button>
 <button class="btn-secondary" style="margin-top:8px;" onclick="clearAIKey()">🗑 清除 API Key</button>
@@ -1011,7 +999,7 @@ font: inherit;
 </div>
 </div>
 </div>
-<div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">網頁版本 v2026-12-09.1</div>
+<div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">網頁版本 v2026-12-10.1</div>
 </div>
 </div>
 <!-- 安裝與同步說明彈窗 -->
@@ -1087,6 +1075,7 @@ let currentDate = todayStr();
 let editingFoodId = null;
 let followToday = true;
 let currentPhotoData = "";
+let currentPhotoThumb = "";
 let photoDBPromise = null;
 function idbAvailable() { return typeof indexedDB !== "undefined" && indexedDB && typeof indexedDB.open === "function"; }
 function openPhotoDB() {
@@ -1144,6 +1133,30 @@ if (!id) return;
 img.removeAttribute("data-photo");
 idbGet(id).then(function (data) { if (data) img.src = data; }).catch(function () {});
 });
+}
+async function recoverLegacyPhotos() {
+if (!idbAvailable()) return false;
+const keys = [];
+try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.indexOf("nutri_day_v4_") === 0) keys.push(k); } } catch (e) { return false; }
+let changed = 0;
+for (let i = 0; i < keys.length; i++) {
+const key = keys[i];
+let d = null;
+try { d = JSON.parse(localStorage.getItem(key)); } catch (e) { continue; }
+if (!d || !Array.isArray(d.foods)) continue;
+let touched = false;
+for (let j = 0; j < d.foods.length; j++) {
+const f = d.foods[j];
+if (f && f.photoId && !f.photo) {
+try {
+const data = await idbGet(f.photoId);
+if (data) { f.photo = data; f.photoId = ""; touched = true; changed++; }
+} catch (e) {}
+}
+}
+if (touched) { try { localStorage.setItem(key, JSON.stringify(d)); } catch (e) {} }
+}
+return changed > 0;
 }
 async function migratePhotosToIDB() {
 if (!idbAvailable()) return false;
@@ -1621,6 +1634,7 @@ const mlEl = document.getElementById("f-drink-ml");
 if (mlEl) mlEl.value = item.ml ? String(item.ml) : "";
 document.getElementById("f-gout").value = item.gout || "low";
 currentPhotoData = item.photo || "";
+currentPhotoThumb = item.photo || "";
 const prev = document.getElementById("photo-preview");
 if (prev) {
 if (currentPhotoData) { prev.src = currentPhotoData; prev.style.display = "block"; }
@@ -1717,6 +1731,13 @@ canvas.height = img.height * scale;
 const ctx = canvas.getContext("2d");
 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 currentPhotoData = canvas.toDataURL("image/jpeg", 0.72);
+const thumbCanvas = document.createElement("canvas");
+const thumbW = 200;
+const thumbScale = Math.min(1, thumbW / img.width);
+thumbCanvas.width = Math.max(1, Math.round(img.width * thumbScale));
+thumbCanvas.height = Math.max(1, Math.round(img.height * thumbScale));
+thumbCanvas.getContext("2d").drawImage(img, 0, 0, thumbCanvas.width, thumbCanvas.height);
+currentPhotoThumb = thumbCanvas.toDataURL("image/jpeg", 0.55);
 const prev = document.getElementById("photo-preview");
 prev.src = currentPhotoData;
 prev.style.display = "block";
@@ -1730,8 +1751,6 @@ const aiBox = document.getElementById("ai-box");
 if (aiBox) aiBox.style.display = "block";
 const aiStat = document.getElementById("ai-status");
 if (aiStat) aiStat.textContent = "";
-const aiConf = getAISettings();
-if (aiConf.key && aiConf.auto) estimateWithAI();
 };
 img.src = ev.target.result;
 };
@@ -1886,10 +1905,9 @@ if (status) status.textContent = "❌ 讀取失敗：" + (e && e.message ? e.mes
 function saveAISettings() {
 const keyEl = document.getElementById("ai-key");
 const modelEl = document.getElementById("ai-model");
-const autoEl = document.getElementById("ai-auto");
 const key = keyEl ? String(keyEl.value || "").trim() : "";
 const model = modelEl ? (String(modelEl.value || "").trim() || AI_DEFAULT_MODEL) : AI_DEFAULT_MODEL;
-const auto = autoEl ? String(autoEl.value || "1") === "1" : true;
+const auto = false;
 try { localStorage.setItem("nutri_ai_v1", JSON.stringify({ key: key, model: model, auto: auto })); } catch (e) {}
 alert(key ? "✅ 已儲存 AI 設定（模型：" + model + "）" : "已清除 API key，AI 估算停用");
 }
@@ -2039,13 +2057,8 @@ photoId: "",
 ml: Math.max(0, Math.round(Number((document.getElementById("f-drink-ml") || {}).value) || 0)),
 photo: ""
 };
-let savedPhotoId = "";
-if (currentPhotoData && idbAvailable()) {
-const pid = "ph" + Date.now();
-try { await idbPut(pid, currentPhotoData); savedPhotoId = pid; item.photoId = pid; }
-catch (e) { alert("⚠️ 相片儲存失敗（空間不足？），已先儲存文字資料"); }
-}
-if (!savedPhotoId) item.photo = currentPhotoData || "";
+item.photo = currentPhotoThumb || currentPhotoData || "";
+item.photoId = "";
 const data = getDayData(currentDate);
 if (editingFoodId !== null) {
 const idx = data.foods.findIndex(function (f) { return f.id === editingFoodId; });
@@ -2092,6 +2105,7 @@ document.getElementById("f-ratio").value = "1";
 document.getElementById("photo-preview").style.display = "none";
 document.getElementById("photo-ai-hint").textContent = "";
 currentPhotoData = "";
+currentPhotoThumb = "";
 closeModal("add-modal");
 renderAll();
 }
@@ -2241,8 +2255,7 @@ const keyEl = document.getElementById("ai-key");
 if (keyEl) keyEl.value = ai.key;
 const modelEl = document.getElementById("ai-model");
 if (modelEl) modelEl.value = ai.model;
-const autoEl = document.getElementById("ai-auto");
-if (autoEl) autoEl.value = ai.auto ? "1" : "0";
+
 }
 document.getElementById(id).classList.add("open");
 }
@@ -2837,7 +2850,7 @@ listEl.innerHTML = `<div style="text-align:center; color:var(--muted); padding:1
 } else {
 listEl.innerHTML = data.foods.map(f => {
 const gLabel = f.gout === "high" ? `<span class="badge badge-high">高痛風風險</span>` : (f.gout === "mid" ? `<span class="badge badge-mid">中風險</span>` : `<span class="badge badge-low">低風險</span>`);
-const thumb = f.photoId ? `<img data-photo="${f.photoId}" class="food-thumb" alt="餐點相片" />` : (f.photo ? `<img src="${f.photo}" class="food-thumb" alt="餐點相片" />` : "");
+const thumb = f.photo ? `<img src="${f.photo}" class="food-thumb" alt="餐點相片" />` : (f.photoId ? `<img data-photo="${f.photoId}" class="food-thumb" alt="餐點相片" />` : "");
 return `<div class="food-item"> ${thumb} <div style="flex:1;"> <div class="food-name">[${f.meal}${f.time ? " " + f.time : ""}] ${f.name}</div> <div class="food-meta">${f.cal} kcal · 蛋白 ${f.protein}g · 碳水 ${f.carbs}g · 脂肪 ${f.fat}g ${f.caffeine ?`· 咖啡因 ${f.caffeine}mg`: ""}</div> <div style="margin-top:4px;">${gLabel}</div> </div> <div style="display:flex; flex-direction:column; gap:6px;"><button class="del-btn" style="background:#e0f2fe; color:#0284c7;" onclick="editFood(${f.id})">✏️</button><button class="del-btn" onclick="deleteFood(${f.id})">刪除</button></div> </div>`;
 }).join("");
 }
@@ -2867,8 +2880,8 @@ if (typeof window !== "undefined" && window.addEventListener) {
 window.addEventListener("focus", refreshOnResume);
 window.addEventListener("pageshow", refreshOnResume);
 }
-migratePhotosToIDB().then(function (moved) {
-if (moved) renderAll();
+recoverLegacyPhotos().then(function (changed) {
+if (changed) renderAll();
 }).catch(function () {});
 </script>
 </body>
