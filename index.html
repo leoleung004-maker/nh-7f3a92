@@ -669,6 +669,15 @@ font: inherit;
 <input type="number" step="0.1" id="custom-weight-input" placeholder="記錄此日體重（例：105.4）" />
 <button style="background:var(--green);" onclick="saveCustomWeight()">記錄體重</button>
 </div>
+<div style="margin-top:12px;">
+<div style="font-size:11px; color:var(--muted); margin-bottom:6px;">今日排便（方便對照體重波動同補水）</div>
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+<button class="btn-secondary" id="bowel-ok" onclick="setBowel('ok')">✅ 順暢</button>
+<button class="btn-secondary" id="bowel-hard" onclick="setBowel('hard')">⚠️ 偏硬／少</button>
+<button class="btn-secondary" id="bowel-loose" onclick="setBowel('loose')">💧 偏稀</button>
+<button class="btn-secondary" id="bowel-none" onclick="setBowel('none')">❌ 未排便</button>
+</div>
+</div>
 <div style="font-size:11px; color:var(--muted);">💡 痛風體質建議每週減重 0.5–0.8 kg，避免急速燃脂產生過多酮體阻礙尿酸排泄。</div>
 </div>
 <!-- 趨勢圖 -->
@@ -931,7 +940,7 @@ font: inherit;
 </div>
 </div>
 </div>
-<div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">網頁版本 v2026-12-06.1</div>
+<div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">網頁版本 v2026-12-07.1</div>
 </div>
 </div>
 <!-- 安裝與同步說明彈窗 -->
@@ -1039,11 +1048,18 @@ steps: parsed.steps || 0,
 sleepHours: parsed.sleepHours || 0,
 sleepQuality: parsed.sleepQuality || "",
 joint: parsed.joint || "",
+bowel: parsed.bowel || "",
 weight: (typeof parsed.weight === "number" && !isNaN(parsed.weight) && parsed.weight > 0) ? parsed.weight : null,
 foods: parsed.foods || []
 };
 }
-return { water: 0, steps: 0, sleepHours: 0, sleepQuality: "", joint: "", weight: null, foods: [] };
+return { water: 0, steps: 0, sleepHours: 0, sleepQuality: "", joint: "", bowel: "", weight: null, foods: [] };
+}
+function setBowel(v) {
+const data = getDayData(currentDate);
+data.bowel = (data.bowel === v) ? "" : v;
+saveDayData(currentDate, data);
+renderAll();
 }
 function setJoint(v) {
 const data = getDayData(currentDate);
@@ -2109,17 +2125,19 @@ renderCalChart(rows, target);
 }
 function buildWeekText() {
 const rows = getTrendRows(7);
-const foodDays = rows.filter(function (r) { return r.cal > 0; });
+const foodDays = rows.filter(function (r) { return r.cal >= 800; });
+const partialDays = rows.filter(function (r) { return r.cal > 0 && r.cal < 800; });
 const avgCal = foodDays.length ? Math.round(foodDays.reduce(function (s, r) { return s + r.cal; }, 0) / foodDays.length) : 0;
 let proSum = 0, proDays = 0, stepSum = 0, stepDays = 0, sleepSum = 0, sleepDays = 0, waterOk = 0, waterDays = 0;
 let jointOk = 0, jointWarn = 0, jointFlare = 0;
+let bowelOk = 0, bowelHard = 0, bowelLoose = 0, bowelNone = 0;
 const waterTarget = calcTargets(getProfile()).waterTarget;
 rows.forEach(function (r) {
 let d = null;
 try { const raw = localStorage.getItem("nutri_day_v4_" + r.date); if (raw) d = JSON.parse(raw); } catch (e) { d = null; }
 if (!d) return;
 const foods = Array.isArray(d.foods) ? d.foods : [];
-if (foods.length) {
+if (foods.length && r.cal >= 800) {
 proSum += foods.reduce(function (s, f) { return s + (Number(f.protein) || 0); }, 0);
 proDays++;
 }
@@ -2129,6 +2147,11 @@ if (Number(d.water) > 0) { waterDays++; if (Number(d.water) >= waterTarget * 0.9
 if (d.joint === "ok") jointOk++;
 else if (d.joint === "warning") jointWarn++;
 else if (d.joint === "flare") jointFlare++;
+else if (foods.length || Number(d.water) > 0 || Number(d.steps) > 0 || Number(d.sleepHours) > 0 || Number(d.weight) > 0) jointOk++;
+if (d.bowel === "ok") bowelOk++;
+else if (d.bowel === "hard") bowelHard++;
+else if (d.bowel === "loose") bowelLoose++;
+else if (d.bowel === "none") bowelNone++;
 });
 const weights = rows.filter(function (r) { return r.weight !== null; });
 let wLine = "紀錄不足";
@@ -2138,13 +2161,14 @@ wLine = (delta > 0 ? "+" : (delta < 0 ? "−" : "±")) + Math.abs(delta).toFixed
 }
 return [
 "📅 近 7 日回顧（" + rows[0].date + " → " + rows[rows.length - 1].date + "）",
-"🔥 平均熱量：" + (avgCal ? avgCal.toLocaleString() + " kcal／日（" + foodDays.length + " 日有紀錄）" : "未有紀錄"),
+"🔥 平均熱量：" + (avgCal ? avgCal.toLocaleString() + " kcal／日（" + foodDays.length + " 日完整記錄" + (partialDays.length ? "，另 " + partialDays.length + " 日偏低未計" : "") + "）" : "未有紀錄"),
 "🥩 平均蛋白質：" + (proDays ? Math.round(proSum / proDays) + " g／日" : "未有紀錄"),
 "👟 平均步數：" + (stepDays ? Math.round(stepSum / stepDays).toLocaleString() + " 步／日" : "未有紀錄"),
 "😴 平均睡眠：" + (sleepDays ? (sleepSum / sleepDays).toFixed(1) + " 小時" : "未有紀錄"),
 "💧 飲水達標：" + waterOk + "／" + (waterDays || 0) + " 日（目標 " + waterTarget + " mL）",
 "⚖️ 體重變化：" + wLine,
-"🦴 關節狀態：正常 " + jointOk + " 日 · 微酸 " + jointWarn + " 日 · 發作 " + jointFlare + " 日"
+"🦴 關節狀態：正常 " + jointOk + " 日（有記錄但未標記當正常）· 微酸 " + jointWarn + " 日 · 發作 " + jointFlare + " 日",
+"🚽 排便：順暢 " + bowelOk + " 日 · 偏硬 " + bowelHard + " 日 · 偏稀 " + bowelLoose + " 日 · 未排便 " + bowelNone + " 日"
 ].concat(jointCorrelation(rows, waterTarget));
 }
 function jointCorrelation(rows, waterTarget) {
@@ -2356,6 +2380,22 @@ tips.push("💧 飲水仲差 " + Math.max(0, t.waterTarget - water).toLocaleStri
 if (steps < p.stepsGoal * 0.5 && hour >= 17) {
 tips.push("👟 步數仲差 " + Math.max(0, p.stepsGoal - steps).toLocaleString() + " 步，飯後散步 15–20 分鐘已經追到一半。");
 }
+let bowelAlert = data.bowel === "hard" || data.bowel === "none";
+if (!bowelAlert) {
+try {
+const bp = String(currentDate).split("-").map(Number);
+const bd = new Date(Date.UTC(bp[0], bp[1] - 1, bp[2]));
+bd.setUTCDate(bd.getUTCDate() - 1);
+const raw = localStorage.getItem("nutri_day_v4_" + bd.toISOString().split("T")[0]);
+if (raw) {
+const yd = JSON.parse(raw);
+if (yd.bowel === "hard" || yd.bowel === "none") bowelAlert = true;
+}
+} catch (e) {}
+}
+if (bowelAlert) {
+tips.push("🚽 近一兩日排便偏硬或未排便，可以多飲 300–500 mL 水，並補充膳食纖維（番薯、綠葉菜、燕麥）。");
+}
 if (hour >= 20 && cal > 0 && cal < calTarget * 0.6) {
 tips.push("🍽 今日食得偏少（" + cal.toLocaleString() + " kcal，目標 " + calTarget.toLocaleString() + "）。長期過低會拖慢代謝、之後容易暴食，可以補一份蛋白質＋少量碳水。");
 }
@@ -2534,6 +2574,15 @@ goutBadge.className = "badge badge-low";
 goutBadge.textContent = "痛風風險：低（安全）";
 goutAdvice.innerHTML = `✅ 今日飲食普林與果糖控制極佳，且飲水量充足，非常有助維持尿酸平穩！`;
 }
+const bowelKeys = ["ok", "hard", "loose", "none"];
+bowelKeys.forEach(function (k) {
+const btn = document.getElementById("bowel-" + k);
+if (!btn) return;
+const on = data.bowel === k;
+btn.style.background = on ? "var(--primary)" : "#f1f5f9";
+btn.style.color = on ? "#fff" : "var(--text)";
+btn.style.borderColor = on ? "var(--primary)" : "var(--border)";
+});
 const jointKeys = ["ok", "warning", "flare"];
 jointKeys.forEach(function (k) {
 const btn = document.getElementById("joint-" + k);
